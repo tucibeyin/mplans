@@ -295,24 +295,29 @@
             
             <div class="absolute inset-0 pointer-events-none z-10 flex flex-col justify-between p-4 md:p-6">
                 <!-- Sol Üst: Arama Barı -->
-                <div class="flex flex-col gap-2 pointer-events-auto w-full max-w-sm">
-                    <div class="bg-dark-900/95 backdrop-blur border border-dark-700 rounded-lg p-3 shadow-lg flex items-center gap-3 transition-colors focus-within:border-brand-500">
-                        <i class="fa-solid fa-magnifying-glass text-slate-400 ml-1"></i>
-                        <input type="text" placeholder="Koordinat, şehir veya parsel ara..." class="bg-transparent border-none outline-none text-sm text-white w-full placeholder-slate-500">
+                <div class="flex flex-col gap-2 pointer-events-auto w-full max-w-[200px] sm:max-w-xs md:max-w-sm">
+                    <div class="bg-dark-900/90 backdrop-blur border border-dark-700 rounded-lg p-2 md:p-3 shadow-lg flex items-center gap-2 transition-colors focus-within:border-brand-500">
+                        <i class="fa-solid fa-magnifying-glass text-slate-400 text-xs md:text-sm ml-0.5"></i>
+                        <input type="text" placeholder="Koordinat veya şehir..." class="bg-transparent border-none outline-none text-xs md:text-sm text-white w-full placeholder-slate-500">
                     </div>
                 </div>
 
                 <!-- SAĞ ÜST CBS KATMAN KONTROL PANELİ -->
-                <div class="absolute top-20 right-4 pointer-events-auto z-30">
-                    <div class="bg-dark-900/90 backdrop-blur-md border border-dark-700 rounded-2xl p-4 shadow-xl w-60">
-                        <h4 class="text-xs font-bold text-brand-500 uppercase tracking-widest mb-3 border-b border-dark-800 pb-2"><i class="fa-solid fa-layer-group mr-1.5"></i> CBS Sismik Katmanlar</h4>
-                        <div class="space-y-3">
-                            <label class="flex items-center gap-3 cursor-pointer group text-sm">
-                                <input type="checkbox" id="chk-faultlines" onchange="toggleFaultLines()" class="w-4 h-4 rounded accent-brand-500 cursor-pointer">
+                <div class="absolute top-20 right-4 pointer-events-auto z-30 flex flex-col items-end gap-2">
+                    <!-- Mobil toggle butonu -->
+                    <button onclick="toggleCBSPanel()" class="md:hidden w-10 h-10 bg-dark-900/90 backdrop-blur-md border border-dark-700 rounded-xl flex items-center justify-center text-brand-500 shadow-xl" title="CBS Katmanlar">
+                        <i class="fa-solid fa-layer-group"></i>
+                    </button>
+                    <!-- CBS Panel: mobilde gizli, toggle ile açılır; masaüstünde her zaman görünür -->
+                    <div id="cbs-panel" class="hidden md:block bg-dark-900/90 backdrop-blur-md border border-dark-700 rounded-2xl p-3 md:p-4 shadow-xl w-48 md:w-56">
+                        <h4 class="text-[10px] font-bold text-brand-500 uppercase tracking-widest mb-2 border-b border-dark-800 pb-1.5"><i class="fa-solid fa-layer-group mr-1.5"></i> CBS Sismik Katmanlar</h4>
+                        <div class="space-y-2">
+                            <label class="flex items-center gap-2.5 cursor-pointer group text-xs">
+                                <input type="checkbox" id="chk-faultlines" onchange="toggleFaultLines()" class="w-3.5 h-3.5 rounded accent-brand-500 cursor-pointer flex-shrink-0">
                                 <span class="text-slate-300 group-hover:text-white transition-colors font-medium">Diri Fay Hatları</span>
                             </label>
-                            <label class="flex items-center gap-3 cursor-pointer group text-sm">
-                                <input type="checkbox" id="chk-earthquakes" onchange="toggleEarthquakeMarkers()" class="w-4 h-4 rounded accent-red-500 cursor-pointer">
+                            <label class="flex items-center gap-2.5 cursor-pointer group text-xs">
+                                <input type="checkbox" id="chk-earthquakes" onchange="toggleEarthquakeMarkers()" class="w-3.5 h-3.5 rounded accent-red-500 cursor-pointer flex-shrink-0">
                                 <span class="text-slate-300 group-hover:text-white transition-colors font-medium">Son Depremler (AFAD)</span>
                             </label>
                         </div>
@@ -326,14 +331,19 @@
                     </div>
                 </div>
                 
-                <div class="w-full max-w-md mx-auto pointer-events-auto pb-[70px] lg:pb-0">
-                    <div class="bg-dark-900/95 backdrop-blur-xl border border-brand-500/30 rounded-2xl p-5 shadow-[0_10px_40px_rgba(0,0,0,0.8)]">
-                        <div class="flex justify-between items-start mb-4 border-b border-dark-800 pb-4">
-                            <div><p class="text-[10px] text-brand-500 font-bold uppercase tracking-wider mb-1">Hedef Koordinat (WGS84)</p><h3 id="display-latlng" class="text-white font-mono font-semibold text-lg tracking-tight">Hesaplanıyor...</h3></div>
-                            <div class="w-10 h-10 rounded-full bg-dark-800 flex items-center justify-center text-brand-500"><i class="fa-solid fa-satellite-dish animate-pulse"></i></div>
+                <div class="w-full max-w-xs md:max-w-md mx-auto pointer-events-auto pb-[130px] md:pb-4 lg:pb-0">
+                    <div class="bg-dark-900/95 backdrop-blur-xl border border-brand-500/30 rounded-xl md:rounded-2xl p-3 md:p-5 shadow-[0_10px_40px_rgba(0,0,0,0.8)]">
+                        <div class="flex justify-between items-center mb-2.5 md:mb-4 md:border-b border-dark-800 md:pb-4">
+                            <div>
+                                <p class="text-[9px] text-brand-500 font-bold uppercase tracking-wider mb-0.5 hidden md:block">Hedef Koordinat (WGS84)</p>
+                                <h3 id="display-latlng" class="text-white font-mono font-semibold text-sm md:text-lg tracking-tight">Hesaplanıyor...</h3>
+                            </div>
+                            <div class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-dark-800 flex items-center justify-center text-brand-500 shrink-0">
+                                <i class="fa-solid fa-satellite-dish animate-pulse text-sm md:text-base"></i>
+                            </div>
                         </div>
-                        <button onclick="startRealAnalysis()" class="w-full bg-brand-500 hover:bg-brand-600 text-dark-950 font-bold py-3.5 rounded-xl flex justify-center items-center gap-2 transition-colors shadow-lg shadow-brand-500/20 text-lg group">
-                            <i class="fa-solid fa-microscope text-xl group-hover:scale-110 transition-transform"></i> M-Plan Analizi Başlat
+                        <button onclick="startRealAnalysis()" class="w-full bg-brand-500 hover:bg-brand-600 active:bg-brand-600 text-dark-950 font-bold py-2.5 md:py-3.5 rounded-lg md:rounded-xl flex justify-center items-center gap-2 transition-colors shadow-lg shadow-brand-500/20 text-sm md:text-lg group">
+                            <i class="fa-solid fa-microscope group-hover:scale-110 transition-transform"></i> M-Plan Analizi Başlat
                         </button>
                     </div>
                 </div>
@@ -1598,6 +1608,10 @@
             document.getElementById('mp-dot-pile').className  = 'w-1.5 h-1.5 rounded-full mx-auto mt-0.5 block transition-colors ' + ps.dot;
             document.getElementById('mp-dot-sheet').className = 'w-1.5 h-1.5 rounded-full mx-auto mt-0.5 block transition-colors ' + ss.dot;
             document.getElementById('mp-dot-hdd').className   = 'w-1.5 h-1.5 rounded-full mx-auto mt-0.5 block transition-colors ' + hs.dot;
+        }
+
+        function toggleCBSPanel() {
+            document.getElementById('cbs-panel').classList.toggle('hidden');
         }
 
         function openMapPanel() {
