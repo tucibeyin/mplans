@@ -442,6 +442,29 @@
                             <p id="mp-hdd-soil-label" class="text-sm font-bold text-brand-500">-</p>
                         </div>
                         <div>
+                            <label class="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase">Boru Malzemesi</label>
+                            <select id="mp-select-hdd-mat" onchange="calcMapHDD()" class="w-full bg-dark-950 border border-dark-700 rounded-lg p-2 text-white text-xs focus:outline-none focus:border-brand-500">
+                                <optgroup label="Polietilen">
+                                    <option value="m1" data-rfactor="1200" data-density="950"  data-sdr="11"  selected>HDPE SDR 11 (PE100) — PN16</option>
+                                    <option value="m2" data-rfactor="1000" data-density="950"  data-sdr="17"        >HDPE SDR 17 (PE100) — PN10</option>
+                                    <option value="m3" data-rfactor="800"  data-density="950"  data-sdr="26"        >HDPE SDR 26 (PE80) — PN6</option>
+                                    <option value="m4" data-rfactor="1400" data-density="910"  data-sdr="11"        >PP-RCT SDR 11 (PP100)</option>
+                                    <option value="m5" data-rfactor="1000" data-density="1020" data-sdr="11"        >PA12 SDR 11 (Poliamid)</option>
+                                    <option value="m6" data-rfactor="600"  data-density="1400" data-sdr="16"        >PVC-O C400</option>
+                                </optgroup>
+                                <optgroup label="Çelik">
+                                    <option value="m7" data-rfactor="1500" data-density="7850" data-tpct="5"        >API 5L Gr.B (σy=240 MPa)</option>
+                                    <option value="m8" data-rfactor="1500" data-density="7850" data-tpct="5"        >API 5L X52 (σy=360 MPa)</option>
+                                    <option value="m9" data-rfactor="1800" data-density="7850" data-tpct="5.5"      >API 5L X65 (σy=448 MPa)</option>
+                                    <option value="m10" data-rfactor="1500" data-density="7950" data-tpct="4"       >Paslanmaz Çelik 316L</option>
+                                </optgroup>
+                                <optgroup label="Diğer">
+                                    <option value="m11" data-rfactor="700"  data-density="1900" data-sdr="15"       >GRP/FRP (Cam Elyaf)</option>
+                                    <option value="m12" data-rfactor="1800" data-density="7100" data-sdr="14"       >Sfero Dökme Demir K9</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div>
                             <div class="flex justify-between mb-1"><label class="text-[10px] font-bold text-slate-400 uppercase">Boru Çapı (D)</label><span id="mp-val-hdd-d" class="text-white text-xs font-bold bg-dark-950 px-2 py-0.5 rounded">400 mm</span></div>
                             <input type="range" id="mp-slider-hdd-d" min="100" max="1200" step="50" value="400" oninput="calcMapHDD()">
                         </div>
@@ -1013,9 +1036,27 @@
                             <div>
                                 <label class="block text-xs font-bold text-slate-400 mb-2 uppercase">Boru Malzemesi</label>
                                 <select id="select-hdd-material" onchange="calculateHDD()" class="w-full bg-dark-950 border border-slate-700 rounded-lg p-2.5 text-white text-sm focus:outline-none focus:border-brand-500">
-                                    <option value="HDPE">HDPE (SDR 11) — Polietilen</option>
-                                    <option value="STEEL">Çelik (API 5L)</option>
-                                    <option value="DUCTILE">Dökme Demir (DN Serisi)</option>
+                                    <optgroup label="Polietilen (HDPE / PE)">
+                                        <option value="HDPE_SDR11" data-rfactor="1200" data-density="950"  data-sdr="11"  data-label="HDPE SDR11 (PE100)" selected>HDPE SDR 11 (PE100) — Standart, yüksek basınç PN16</option>
+                                        <option value="HDPE_SDR17" data-rfactor="1000" data-density="950"  data-sdr="17"  data-label="HDPE SDR17 (PE100)">HDPE SDR 17 (PE100) — Orta basınç PN10, esnek</option>
+                                        <option value="HDPE_SDR26" data-rfactor="800"  data-density="950"  data-sdr="26"  data-label="HDPE SDR26 (PE80)">HDPE SDR 26 (PE80) — Düşük basınç PN6, çok esnek</option>
+                                    </optgroup>
+                                    <optgroup label="Diğer Termoplastikler">
+                                        <option value="PP_SDR11"   data-rfactor="1400" data-density="910"  data-sdr="11"  data-label="PP-RCT SDR11 (PP100)">PP-RCT SDR 11 (PP100) — Sıcak su / ısıtma hatları</option>
+                                        <option value="PA12_SDR11" data-rfactor="1000" data-density="1020" data-sdr="11"  data-label="PA12 SDR11 (Poliamid)">PA12 SDR 11 (Poliamid) — Yüksek darbe &amp; kimyasal direnç</option>
+                                        <option value="PVCO"       data-rfactor="600"  data-density="1400" data-sdr="16"  data-label="PVC-O C400">PVC-O C400 — İçme suyu, optimize moleküler yapı</option>
+                                    </optgroup>
+                                    <optgroup label="Çelik Borular">
+                                        <option value="STEEL_GRB"  data-rfactor="1500" data-density="7850" data-tpct="5"   data-label="API 5L Gr.B (Çelik)">API 5L Gr. B — σy = 240 MPa, genel hat borusu</option>
+                                        <option value="STEEL_X52"  data-rfactor="1500" data-density="7850" data-tpct="5"   data-label="API 5L X52 (Çelik)">API 5L X52 — σy = 360 MPa, orta basınçlı hat</option>
+                                        <option value="STEEL_X65"  data-rfactor="1800" data-density="7850" data-tpct="5.5" data-label="API 5L X65 (Çelik)">API 5L X65 — σy = 448 MPa, yüksek basınçlı doğalgaz</option>
+                                        <option value="STEEL_A53"  data-rfactor="1500" data-density="7850" data-tpct="5"   data-label="ASTM A53 Gr.B (Çelik)">ASTM A53 Gr. B — Buhar / su, genel amaçlı</option>
+                                        <option value="SS316L"     data-rfactor="1500" data-density="7950" data-tpct="4"   data-label="Paslanmaz Çelik 316L">Paslanmaz Çelik 316L — Korozif ortam / kimyasal hat</option>
+                                    </optgroup>
+                                    <optgroup label="Diğer Malzemeler">
+                                        <option value="GRP"        data-rfactor="700"  data-density="1900" data-sdr="15"  data-label="GRP/FRP (Cam Elyaf)">GRP / FRP (Cam Elyaf Takviyeli) — Deniz &amp; agresif zemin</option>
+                                        <option value="DUCTILE"    data-rfactor="1800" data-density="7100" data-sdr="14"  data-label="Sfero Dökme Demir K9">Sfero Dökme Demir K9 — İçme suyu / kanalizasyon basınç</option>
+                                    </optgroup>
                                 </select>
                             </div>
 
@@ -1023,16 +1064,27 @@
                                 <label class="block text-xs font-bold text-slate-400 mb-2 uppercase">Zemin Tipi</label>
                                 <select id="select-hdd-soil" onchange="calculateHDD()" class="w-full bg-dark-950 border border-slate-700 rounded-lg p-2.5 text-white text-sm focus:outline-none focus:border-brand-500">
                                     <optgroup label="Kohezyonsuz Zeminler">
-                                        <option value="loose_sand" data-mu="0.25">Gevşek Kum (N &lt; 10)</option>
-                                        <option value="dense_sand" data-mu="0.35" selected>Sıkı Kum-Çakıl (N &gt; 30)</option>
+                                        <option value="very_loose_sand"  data-mu="0.18">Çok Gevşek Kum (SPT N &lt; 4) — Su altı riski</option>
+                                        <option value="loose_sand"       data-mu="0.25">Gevşek Kum (SPT N = 4–10)</option>
+                                        <option value="medium_sand"      data-mu="0.28">Orta Sıkı Kum (SPT N = 10–30)</option>
+                                        <option value="dense_sand"       data-mu="0.35" selected>Sıkı Kum / Çakıl (SPT N &gt; 30)</option>
+                                        <option value="gravel"           data-mu="0.40">Çakıl (GW–GP) — İri taneli, geçirgen</option>
+                                        <option value="sandy_silt"       data-mu="0.22">Kum–Silt Karışımı (SM–ML)</option>
                                     </optgroup>
                                     <optgroup label="Kohezyonlu Zeminler">
-                                        <option value="soft_clay" data-mu="0.20">Yumuşak Kil (cu &lt; 25 kPa)</option>
-                                        <option value="stiff_clay" data-mu="0.30">Sert Kil (cu &gt; 100 kPa)</option>
+                                        <option value="very_soft_clay"   data-mu="0.15">Çok Yumuşak Kil (cu &lt; 12 kPa) — Yüksek sızıntı riski</option>
+                                        <option value="soft_clay"        data-mu="0.20">Yumuşak Kil (cu = 12–25 kPa)</option>
+                                        <option value="medium_clay"      data-mu="0.25">Orta Kil (cu = 25–50 kPa)</option>
+                                        <option value="stiff_clay"       data-mu="0.30">Sert Kil (cu = 50–100 kPa)</option>
+                                        <option value="very_stiff_clay"  data-mu="0.35">Çok Sert Kil / Kaya Kili (cu &gt; 100 kPa)</option>
+                                        <option value="silty_clay"       data-mu="0.22">Siltli Kil / Organik Silt (MH–OH)</option>
                                     </optgroup>
                                     <optgroup label="Kayaçlar">
-                                        <option value="weathered_rock" data-mu="0.45">Ayrışmış Kaya (RQD &lt; 50%)</option>
-                                        <option value="hard_rock" data-mu="0.55">Sağlam Anakaya (RQD &gt; 75%)</option>
+                                        <option value="highly_weathered" data-mu="0.40">Yüksek Derecede Ayrışmış Kaya (RQD &lt; 25%)</option>
+                                        <option value="weathered_rock"   data-mu="0.45">Orta Ayrışmış Kaya / Şist (RQD = 25–50%)</option>
+                                        <option value="sedimentary_rock" data-mu="0.50">Kumtaşı / Kireçtaşı (RQD = 50–75%)</option>
+                                        <option value="hard_rock"        data-mu="0.55">Granit / Bazalt (RQD &gt; 75%)</option>
+                                        <option value="very_hard_rock"   data-mu="0.62">Çok Sert Anakaya (RQD &gt; 90%) — Özel ekipman</option>
                                     </optgroup>
                                 </select>
                             </div>
@@ -1491,13 +1543,22 @@
             document.getElementById('mp-val-hdd-alpha').innerText = alpha_deg + '°';
             const D_m       = D_mm / 1000;
             const alpha_rad = alpha_deg * Math.PI / 180;
-            const R_min     = 1200 * D_m;
-            const h_max     = R_min * (1 - Math.cos(alpha_rad));
-            const t         = D_m / 11;
-            const A         = Math.PI * D_m * t;
-            const w_air     = 7850 * A * 9.81 / 1000;
+
+            // Malzeme parametrelerini paneldeki select'ten oku
+            const mpMatSel = document.getElementById('mp-select-hdd-mat');
+            const mpMatOpt = mpMatSel ? mpMatSel.options[mpMatSel.selectedIndex] : null;
+            const R_factor  = mpMatOpt ? parseInt(mpMatOpt.getAttribute('data-rfactor'))  : 1200;
+            const density   = mpMatOpt ? parseFloat(mpMatOpt.getAttribute('data-density')) : 950;
+            const sdrV      = mpMatOpt && mpMatOpt.getAttribute('data-sdr')  ? parseFloat(mpMatOpt.getAttribute('data-sdr'))  : null;
+            const tpctV     = mpMatOpt && mpMatOpt.getAttribute('data-tpct') ? parseFloat(mpMatOpt.getAttribute('data-tpct')) : null;
+            const t_m       = sdrV ? D_m / sdrV : D_m * tpctV / 100;
+            const A_wall    = Math.PI * D_m * t_m;
+            const w_air     = density * A_wall * 9.81 / 1000;
             const w_buoy    = 1000 * (Math.PI / 4) * D_m * D_m * 9.81 / 1000;
-            const w_unit    = Math.abs(w_buoy - w_air);
+            const w_unit    = density < 1000 ? Math.abs(w_buoy - w_air) : Math.max(w_air - w_buoy, 0.05 * D_m);
+
+            const R_min      = R_factor * D_m;
+            const h_max      = R_min * (1 - Math.cos(alpha_rad));
             const F_pullback = mapSoilData.hddMu * w_unit * L + 0.40 * D_m * L;
             document.getElementById('mp-res-rmin').innerText    = R_min.toFixed(0) + ' m';
             document.getElementById('mp-res-hdepth').innerText  = h_max.toFixed(1) + ' m';
@@ -1776,7 +1837,16 @@
             const D_mm = parseFloat(document.getElementById('slider-hdd-d').value);
             const L_total = parseFloat(document.getElementById('slider-hdd-l').value);
             const alpha_deg = parseFloat(document.getElementById('slider-hdd-alpha').value);
-            const material = document.getElementById('select-hdd-material').value;
+
+            // Malzeme parametrelerini option data-attribute üzerinden oku
+            const matSel    = document.getElementById('select-hdd-material');
+            const matOpt    = matSel.options[matSel.selectedIndex];
+            const R_factor  = parseInt(matOpt.getAttribute('data-rfactor'));
+            const mat_label = matOpt.getAttribute('data-label');
+            const density   = parseFloat(matOpt.getAttribute('data-density'));
+            const sdrVal    = matOpt.getAttribute('data-sdr')  ? parseFloat(matOpt.getAttribute('data-sdr'))  : null;
+            const tpctVal   = matOpt.getAttribute('data-tpct') ? parseFloat(matOpt.getAttribute('data-tpct')) : null;
+
             const soilSel = document.getElementById('select-hdd-soil');
             const mu = parseFloat(soilSel.options[soilSel.selectedIndex].getAttribute('data-mu'));
 
@@ -1787,11 +1857,8 @@
             const D_m = D_mm / 1000;
             const alpha_rad = alpha_deg * Math.PI / 180;
 
-            // 1. Minimum eğrilik yarıçapı (R_min)
-            // HDPE SDR11: 1200×D | Çelik API5L: 1500×D | Dökme demir: 1800×D
-            const R_factor = material === 'HDPE' ? 1200 : material === 'STEEL' ? 1500 : 1800;
+            // 1. Minimum eğrilik yarıçapı (R_min) — malzeme data-rfactor'dan
             const R_min = R_factor * D_m;
-            const mat_label = material === 'HDPE' ? 'HDPE SDR11' : material === 'STEEL' ? 'API 5L Çelik' : 'Dökme Demir';
 
             // 2. Profil geometrisi
             const L_entry = R_min * alpha_rad;          // giriş eğrisi uzunluğu (m)
@@ -1807,26 +1874,16 @@
             const V_annular = (Math.PI / 4) * (D_drill_m * D_drill_m - D_m * D_m) * L_total;
             const V_mud = V_annular * 1.25;
 
-            // 5. Boru birim etkin ağırlığı (kN/m)
+            // 5. Boru birim etkin ağırlığı (kN/m) — yoğunluk &amp; et kalınlığı bazlı
+            const t_m    = sdrVal ? D_m / sdrVal : D_m * tpctVal / 100;
+            const A_wall = Math.PI * D_m * t_m;
+            const w_air  = density * A_wall * 9.81 / 1000;
+            const w_buoy = 1000 * (Math.PI / 4) * D_m * D_m * 9.81 / 1000;
             let w_unit;
-            if (material === 'HDPE') {
-                const t = D_m / 11;                                          // SDR11 et kalınlığı
-                const A_wall = Math.PI * D_m * t;
-                const w_air  = 950  * A_wall * 9.81 / 1000;                 // kN/m
-                const w_buoy = 1000 * (Math.PI / 4) * D_m * D_m * 9.81 / 1000;
-                w_unit = Math.abs(w_buoy - w_air);                          // HDPE su üstünde kalkar
-            } else if (material === 'STEEL') {
-                const t = D_m * 0.05;
-                const A_wall = Math.PI * D_m * t;
-                const w_air  = 7850 * A_wall * 9.81 / 1000;
-                const w_buoy = 1000 * (Math.PI / 4) * D_m * D_m * 9.81 / 1000;
-                w_unit = Math.max(w_air - w_buoy, 0.05 * D_m);
+            if (density < 1000) {
+                w_unit = Math.abs(w_buoy - w_air);          // hafif boru: kaldırma kuvveti çekmeye eklenir
             } else {
-                const t = D_m / 14;
-                const A_wall = Math.PI * D_m * t;
-                const w_air  = 7100 * A_wall * 9.81 / 1000;
-                const w_buoy = 1000 * (Math.PI / 4) * D_m * D_m * 9.81 / 1000;
-                w_unit = Math.max(w_air - w_buoy, 0.05 * D_m);
+                w_unit = Math.max(w_air - w_buoy, 0.05 * D_m); // ağır boru: net ağırlık çekmeye eklenir
             }
 
             // 6. Geri çekme kuvveti — F_pullback (ASTM F1962 basitleştirilmiş)
