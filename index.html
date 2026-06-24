@@ -338,6 +338,148 @@
                     </div>
                 </div>
             </div>
+
+            <!-- SAĞ PANEL: Harita Üzerinde Mühendislik Analizi -->
+            <div id="map-eng-panel" class="absolute right-0 top-0 h-full w-full lg:w-[380px] bg-dark-900/98 backdrop-blur-xl border-l border-dark-700 z-20 transform translate-x-full transition-transform duration-500 flex flex-col shadow-[-15px_0_50px_rgba(0,0,0,0.6)] pointer-events-auto">
+
+                <!-- Panel Header -->
+                <div class="flex items-center justify-between p-4 border-b border-dark-800 flex-shrink-0 bg-dark-950/60">
+                    <div>
+                        <p class="text-[9px] text-brand-500 font-bold uppercase tracking-wider mb-0.5">Analiz Lokasyonu</p>
+                        <p id="mp-coord" class="text-white font-mono text-sm font-semibold">--° K, --° D</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span id="mp-class-badge" class="text-xs font-bold font-mono px-2 py-1 rounded bg-dark-800 text-slate-400 border border-dark-700">--</span>
+                        <button onclick="closeMapPanel()" class="w-9 h-9 rounded-full bg-dark-800 hover:bg-red-500/80 text-slate-400 hover:text-white transition-colors flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                </div>
+
+                <!-- Sekmeler -->
+                <div class="flex border-b border-dark-800 flex-shrink-0">
+                    <button onclick="switchMapTab('zemin')" id="mp-tab-zemin" class="mp-tab flex-1 py-3 text-[10px] font-bold border-b-2 border-brand-500 text-brand-500 transition-colors">
+                        <i class="fa-solid fa-layer-group block mb-0.5 text-sm"></i>ZEMİN
+                    </button>
+                    <button onclick="switchMapTab('pile')" id="mp-tab-pile" class="mp-tab flex-1 py-3 text-[10px] font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-300 transition-colors">
+                        <i class="fa-solid fa-arrow-down-long block mb-0.5 text-sm"></i>F. KAZIK
+                    </button>
+                    <button onclick="switchMapTab('sheet')" id="mp-tab-sheet" class="mp-tab flex-1 py-3 text-[10px] font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-300 transition-colors">
+                        <i class="fa-solid fa-grip-lines-vertical block mb-0.5 text-sm"></i>PALPLANŞ
+                    </button>
+                    <button onclick="switchMapTab('hdd')" id="mp-tab-hdd" class="mp-tab flex-1 py-3 text-[10px] font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-300 transition-colors">
+                        <i class="fa-solid fa-rotate block mb-0.5 text-sm"></i>HDD
+                    </button>
+                </div>
+
+                <!-- Kaydırılabilir İçerik -->
+                <div class="flex-1 overflow-y-auto">
+
+                    <!-- Zemin Sekmesi -->
+                    <div id="mp-content-zemin" class="mp-content p-4 space-y-3">
+                        <div class="flex gap-3">
+                            <div id="mp-soil-visual" class="w-14 h-28 rounded border border-dark-700 flex flex-col overflow-hidden flex-shrink-0"></div>
+                            <div class="flex-1 space-y-2">
+                                <div class="bg-dark-800 rounded-lg p-3"><p class="text-[9px] text-slate-500 uppercase font-bold mb-0.5">Baskın Litoloji</p><p id="mp-lithology" class="text-white font-bold text-sm leading-tight">-</p></div>
+                                <div class="bg-dark-800 rounded-lg p-3"><p class="text-[9px] text-slate-500 uppercase font-bold mb-0.5">TBDY-2018</p><p id="mp-class" class="text-2xl font-heading font-bold text-white">-</p></div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2">
+                            <div class="bg-dark-800 rounded-lg p-3"><p class="text-[9px] text-slate-500 uppercase font-bold">Rakım</p><p id="mp-elevation" class="text-sm font-bold text-white mt-0.5">-</p></div>
+                            <div class="bg-dark-800 rounded-lg p-3"><p class="text-[9px] text-slate-500 uppercase font-bold">Eğim</p><p id="mp-slope" class="text-sm font-bold text-brand-500 mt-0.5">-</p></div>
+                            <div class="bg-dark-800 rounded-lg p-3"><p class="text-[9px] text-slate-500 uppercase font-bold">Risk</p><p id="mp-risk" class="text-xs font-bold text-white mt-0.5 leading-tight">-</p></div>
+                        </div>
+                    </div>
+
+                    <!-- Fore Kazık Sekmesi -->
+                    <div id="mp-content-pile" class="mp-content hidden p-4 space-y-4">
+                        <div class="bg-dark-800/60 rounded-lg p-3 border border-dark-700">
+                            <p class="text-[9px] text-slate-500 uppercase font-bold mb-1">Haritadan Tespit Edilen Zemin</p>
+                            <p id="mp-pile-soil-label" class="text-sm font-bold text-brand-500">-</p>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1"><label class="text-[10px] font-bold text-slate-400 uppercase">Kazık Çapı (D)</label><span id="mp-val-pile-d" class="text-white text-xs font-bold bg-dark-950 px-2 py-0.5 rounded">80 cm</span></div>
+                            <input type="range" id="mp-slider-pile-d" min="45" max="150" step="5" value="80" oninput="calcMapPile()">
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1"><label class="text-[10px] font-bold text-slate-400 uppercase">Kazık Boyu (L)</label><span id="mp-val-pile-l" class="text-white text-xs font-bold bg-dark-950 px-2 py-0.5 rounded">15.0 m</span></div>
+                            <input type="range" id="mp-slider-pile-l" min="5" max="40" step="0.5" value="15" oninput="calcMapPile()">
+                        </div>
+                        <div class="bg-dark-950 rounded-xl p-4 border border-dark-700 space-y-2">
+                            <div class="flex justify-between text-sm"><span class="text-slate-400">Çevre Sürtünmesi (Qs):</span><span id="mp-res-qs" class="text-white font-bold">-</span></div>
+                            <div class="flex justify-between text-sm"><span class="text-slate-400">Uç Direnci (Qp):</span><span id="mp-res-qp" class="text-white font-bold">-</span></div>
+                            <div class="flex justify-between pt-2 border-t border-dark-800"><span class="text-xs text-brand-500 font-bold uppercase">Toplam Qu:</span><span id="mp-res-qu" class="text-2xl font-bold text-brand-500">-</span></div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="bg-dark-800 rounded-lg p-3"><p class="text-[9px] text-slate-500 uppercase font-bold">Güvenli Yük</p><p id="mp-res-qsafe" class="text-base font-bold text-emerald-400 mt-0.5">-</p><p class="text-[9px] text-slate-600">Qu ÷ 2.5</p></div>
+                            <div class="bg-dark-800 rounded-lg p-3"><p class="text-[9px] text-slate-500 uppercase font-bold">Beton Hacmi</p><p id="mp-res-concrete" class="text-base font-bold text-white mt-0.5">-</p><p class="text-[9px] text-slate-600">Tek kazık</p></div>
+                        </div>
+                    </div>
+
+                    <!-- Palplanş Sekmesi -->
+                    <div id="mp-content-sheet" class="mp-content hidden p-4 space-y-4">
+                        <div class="bg-dark-800/60 rounded-lg p-3 border border-dark-700">
+                            <p class="text-[9px] text-slate-500 uppercase font-bold mb-1">Lokasyon Zemin Sınıfı</p>
+                            <p id="mp-sheet-soil-label" class="text-sm font-bold text-brand-500">-</p>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1"><label class="text-[10px] font-bold text-slate-400 uppercase">Kazı Derinliği (H)</label><span id="mp-val-exc" class="text-white text-xs font-bold bg-dark-950 px-2 py-0.5 rounded">5.0 m</span></div>
+                            <input type="range" id="mp-slider-exc" min="1.0" max="15.0" step="0.5" value="5.0" oninput="calcMapSheet()">
+                            <div class="flex justify-between text-[10px] text-slate-600 mt-0.5"><span>1.0 m</span><span>15.0 m</span></div>
+                        </div>
+                        <div class="bg-dark-950 rounded-xl p-4 border border-dark-700 flex items-start gap-3">
+                            <div id="mp-sp-icon" class="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center text-lg shrink-0 mt-0.5"><i class="fa-solid fa-check"></i></div>
+                            <div><h4 id="mp-sp-title" class="text-white font-bold text-sm mb-1">-</h4><p id="mp-sp-desc" class="text-xs text-slate-400">-</p></div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="bg-dark-800 rounded-lg p-3"><p class="text-[9px] text-slate-500 uppercase font-bold">Çakım Boyu</p><p id="mp-sp-depth" class="text-base font-bold text-white mt-0.5">-</p></div>
+                            <div class="bg-dark-800 rounded-lg p-3"><p class="text-[9px] text-slate-500 uppercase font-bold">Deplasman</p><p id="mp-sp-defl" class="text-base font-bold text-emerald-400 mt-0.5">-</p></div>
+                        </div>
+                    </div>
+
+                    <!-- HDD Sekmesi -->
+                    <div id="mp-content-hdd" class="mp-content hidden p-4 space-y-4">
+                        <div class="bg-dark-800/60 rounded-lg p-3 border border-dark-700">
+                            <p class="text-[9px] text-slate-500 uppercase font-bold mb-1">Haritadan Tespit Edilen Zemin</p>
+                            <p id="mp-hdd-soil-label" class="text-sm font-bold text-brand-500">-</p>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1"><label class="text-[10px] font-bold text-slate-400 uppercase">Boru Çapı (D)</label><span id="mp-val-hdd-d" class="text-white text-xs font-bold bg-dark-950 px-2 py-0.5 rounded">400 mm</span></div>
+                            <input type="range" id="mp-slider-hdd-d" min="100" max="1200" step="50" value="400" oninput="calcMapHDD()">
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1"><label class="text-[10px] font-bold text-slate-400 uppercase">Sondaj Uzunluğu (L)</label><span id="mp-val-hdd-l" class="text-white text-xs font-bold bg-dark-950 px-2 py-0.5 rounded">300 m</span></div>
+                            <input type="range" id="mp-slider-hdd-l" min="50" max="2000" step="50" value="300" oninput="calcMapHDD()">
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1"><label class="text-[10px] font-bold text-slate-400 uppercase">Giriş Açısı (α)</label><span id="mp-val-hdd-alpha" class="text-white text-xs font-bold bg-dark-950 px-2 py-0.5 rounded">12°</span></div>
+                            <input type="range" id="mp-slider-hdd-alpha" min="8" max="18" step="1" value="12" oninput="calcMapHDD()">
+                        </div>
+                        <div class="bg-dark-950 rounded-xl p-4 border border-dark-700 space-y-2">
+                            <div class="flex justify-between text-sm"><span class="text-slate-400">Min. Eğrilik Yarıçapı:</span><span id="mp-res-rmin" class="text-white font-bold">-</span></div>
+                            <div class="flex justify-between text-sm"><span class="text-slate-400">Maks. Derinlik:</span><span id="mp-res-hdepth" class="text-white font-bold">-</span></div>
+                            <div class="flex justify-between pt-2 border-t border-dark-800"><span class="text-xs text-orange-400 font-bold uppercase">Geri Çekme Kuvveti:</span><span id="mp-res-pullback" class="text-2xl font-bold text-orange-400">-</span></div>
+                        </div>
+                        <div id="mp-hdd-status" class="bg-dark-800 rounded-lg p-3 flex items-center gap-2">
+                            <div id="mp-hdd-status-icon" class="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center text-sm shrink-0"><i class="fa-solid fa-shield-check"></i></div>
+                            <p id="mp-hdd-status-text" class="text-xs text-slate-400">-</p>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Panel Alt: Tam Modüle Git -->
+                <div class="p-3 border-t border-dark-800 bg-dark-950/30 flex-shrink-0 grid grid-cols-3 gap-2">
+                    <button onclick="closeMapPanel(); switchView('boredpile')" class="text-[10px] bg-dark-800 hover:bg-dark-700 text-white font-bold py-2.5 rounded-lg border border-dark-700 hover:border-brand-500 transition-colors flex flex-col items-center gap-1">
+                        <i class="fa-solid fa-arrow-down-long text-brand-500 text-sm"></i>Fore Kazık
+                    </button>
+                    <button onclick="closeMapPanel(); switchView('sheetpile')" class="text-[10px] bg-dark-800 hover:bg-dark-700 text-white font-bold py-2.5 rounded-lg border border-dark-700 hover:border-brand-500 transition-colors flex flex-col items-center gap-1">
+                        <i class="fa-solid fa-grip-lines-vertical text-brand-500 text-sm"></i>Palplanş
+                    </button>
+                    <button onclick="closeMapPanel(); switchView('hdd')" class="text-[10px] bg-dark-800 hover:bg-dark-700 text-white font-bold py-2.5 rounded-lg border border-dark-700 hover:border-brand-500 transition-colors flex flex-col items-center gap-1">
+                        <i class="fa-solid fa-rotate text-brand-500 text-sm"></i>HDD
+                    </button>
+                </div>
+
+            </div>
         </section>
 
         <!-- 3. ARŞİVİM (DASHBOARD) VIEW -->
@@ -1225,7 +1367,156 @@
                 updateSpectrum();
             }
 
-            openModal('comprehensiveResultModal');
+            // ZeminSınıfı → mühendislik parametreleri haritalaması
+            const soilParamMap = {
+                ZA: { frictionFactor: 300, endBearingFactor: 12000, hddMu: 0.55, label: 'Sağlam Anakaya' },
+                ZB: { frictionFactor: 150, endBearingFactor: 6000,  hddMu: 0.45, label: 'Ayrışmış Kaya'  },
+                ZC: { frictionFactor: 60,  endBearingFactor: 2500,  hddMu: 0.35, label: 'Sıkı Kum / Çakıl' },
+                ZD: { frictionFactor: 25,  endBearingFactor: 800,   hddMu: 0.25, label: 'Gevşek Kum'     },
+                ZE: { frictionFactor: 15,  endBearingFactor: 300,   hddMu: 0.20, label: 'Yumuşak Kil'    }
+            };
+            mapSoilData = soilParamMap[zeminSinifi] || soilParamMap['ZC'];
+
+            // Sol paneli doldur
+            document.getElementById('mp-coord').innerText    = `${lat.toFixed(4)}° K, ${lng.toFixed(4)}° D`;
+            document.getElementById('mp-lithology').innerText = litoloji;
+            document.getElementById('mp-class').innerText    = zeminSinifi;
+            document.getElementById('mp-elevation').innerText = rakim + ' m';
+            document.getElementById('mp-slope').innerText    = '%' + egim;
+            document.getElementById('mp-risk').innerText     = risk;
+            document.getElementById('mp-soil-visual').innerHTML = profileHTML;
+            document.getElementById('mp-pile-soil-label').innerText  = mapSoilData.label;
+            document.getElementById('mp-sheet-soil-label').innerText = zeminSinifi + ' — ' + litoloji;
+            document.getElementById('mp-hdd-soil-label').innerText   = mapSoilData.label;
+
+            // Badge rengi zemin sınıfına göre
+            const mpBadge = document.getElementById('mp-class-badge');
+            mpBadge.innerText = zeminSinifi;
+            if(zeminSinifi === 'ZA' || zeminSinifi === 'ZB')
+                mpBadge.className = 'text-xs font-bold font-mono px-2 py-1 rounded bg-emerald-500/20 text-emerald-500 border border-emerald-500/30';
+            else if(zeminSinifi === 'ZE')
+                mpBadge.className = 'text-xs font-bold font-mono px-2 py-1 rounded bg-red-500/20 text-red-500 border border-red-500/30';
+            else
+                mpBadge.className = 'text-xs font-bold font-mono px-2 py-1 rounded bg-brand-500/20 text-brand-500 border border-brand-500/30';
+
+            // Tüm sekme hesaplamalarını başlat
+            switchMapTab('zemin');
+            calcMapPile();
+            calcMapSheet();
+            calcMapHDD();
+            openMapPanel();
+        }
+
+        // Harita analiz paneli için global zemin verisi
+        let mapSoilData = { frictionFactor: 60, endBearingFactor: 2500, hddMu: 0.35, label: 'Sıkı Kum / Çakıl' };
+
+        function openMapPanel() {
+            document.getElementById('map-eng-panel').classList.remove('translate-x-full');
+            setTimeout(function() { if(typeof map !== 'undefined') map.invalidateSize(); }, 520);
+        }
+
+        function closeMapPanel() {
+            document.getElementById('map-eng-panel').classList.add('translate-x-full');
+            setTimeout(function() { if(typeof map !== 'undefined') map.invalidateSize(); }, 520);
+        }
+
+        function switchMapTab(tabId) {
+            document.querySelectorAll('.mp-tab').forEach(function(t) {
+                t.classList.remove('border-brand-500', 'text-brand-500');
+                t.classList.add('border-transparent', 'text-slate-500');
+            });
+            document.querySelectorAll('.mp-content').forEach(function(c) { c.classList.add('hidden'); });
+            const at = document.getElementById('mp-tab-' + tabId);
+            if(at) { at.classList.remove('border-transparent', 'text-slate-500'); at.classList.add('border-brand-500', 'text-brand-500'); }
+            const ac = document.getElementById('mp-content-' + tabId);
+            if(ac) ac.classList.remove('hidden');
+        }
+
+        function calcMapPile() {
+            const D_cm = parseFloat(document.getElementById('mp-slider-pile-d').value);
+            const L_m  = parseFloat(document.getElementById('mp-slider-pile-l').value);
+            document.getElementById('mp-val-pile-d').innerText = D_cm + ' cm';
+            document.getElementById('mp-val-pile-l').innerText = L_m.toFixed(1) + ' m';
+            const D_m = D_cm / 100;
+            const Qs  = Math.PI * D_m * L_m * (mapSoilData.frictionFactor / 10);
+            const Qp  = Math.PI * Math.pow(D_m / 2, 2) * mapSoilData.endBearingFactor;
+            const Qu  = Qs + Qp;
+            document.getElementById('mp-res-qs').innerText       = Math.round(Qs) + ' Ton';
+            document.getElementById('mp-res-qp').innerText       = Math.round(Qp) + ' Ton';
+            document.getElementById('mp-res-qu').innerText       = Math.round(Qu) + ' Ton';
+            document.getElementById('mp-res-qsafe').innerText    = Math.round(Qu / 2.5) + ' Ton';
+            document.getElementById('mp-res-concrete').innerText = (Math.PI * Math.pow(D_m / 2, 2) * L_m).toFixed(2) + ' m³';
+        }
+
+        function calcMapSheet() {
+            const depth = parseFloat(document.getElementById('mp-slider-exc').value);
+            document.getElementById('mp-val-exc').innerText = depth.toFixed(1) + ' m';
+            const wel = 1800;
+            let defl = (Math.pow(depth, 3) * 50) / wel;
+            const needsAnchor = defl > 50;
+            if(needsAnchor) defl *= 0.3;
+            const icon  = document.getElementById('mp-sp-icon');
+            const title = document.getElementById('mp-sp-title');
+            const desc  = document.getElementById('mp-sp-desc');
+            const deflEl = document.getElementById('mp-sp-defl');
+            if(depth <= 4.0 && !needsAnchor) {
+                icon.className = 'w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center text-lg shrink-0 mt-0.5';
+                icon.innerHTML = '<i class="fa-solid fa-check"></i>';
+                title.innerText = 'Konsol Tasarım Yeterli';
+                desc.innerText  = 'Ankraj gerekmez. PU serisi profil uygundur.';
+                deflEl.className = 'text-base font-bold text-emerald-400 mt-0.5';
+            } else if(depth <= 8.0 || needsAnchor) {
+                icon.className = 'w-10 h-10 rounded-full bg-brand-500/20 text-brand-500 flex items-center justify-center text-lg shrink-0 mt-0.5';
+                icon.innerHTML = '<i class="fa-solid fa-anchor"></i>';
+                title.innerText = 'Tek Sıra Ankraj Gerekli';
+                desc.innerText  = 'Deplasman limitlemek için ankraj bağlanmalıdır.';
+                deflEl.className = 'text-base font-bold text-brand-500 mt-0.5';
+            } else {
+                icon.className = 'w-10 h-10 rounded-full bg-red-500/20 text-red-500 flex items-center justify-center text-lg shrink-0 mt-0.5 animate-pulse';
+                icon.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+                title.innerText = 'Çoklu Ankraj / Ağır Z-Profil';
+                desc.innerText  = 'Ekstrem derinlik. Ağır Z-profil ve çoklu ankraj şarttır.';
+                deflEl.className = 'text-base font-bold text-red-400 mt-0.5';
+            }
+            document.getElementById('mp-sp-depth').innerText = '~' + (depth * (needsAnchor ? 1.3 : 1.5)).toFixed(1) + ' m';
+            deflEl.innerText = defl.toFixed(1) + ' mm';
+        }
+
+        function calcMapHDD() {
+            const D_mm      = parseFloat(document.getElementById('mp-slider-hdd-d').value);
+            const L         = parseFloat(document.getElementById('mp-slider-hdd-l').value);
+            const alpha_deg = parseFloat(document.getElementById('mp-slider-hdd-alpha').value);
+            document.getElementById('mp-val-hdd-d').innerText     = D_mm + ' mm';
+            document.getElementById('mp-val-hdd-l').innerText     = L + ' m';
+            document.getElementById('mp-val-hdd-alpha').innerText = alpha_deg + '°';
+            const D_m       = D_mm / 1000;
+            const alpha_rad = alpha_deg * Math.PI / 180;
+            const R_min     = 1200 * D_m;
+            const h_max     = R_min * (1 - Math.cos(alpha_rad));
+            const t         = D_m / 11;
+            const A         = Math.PI * D_m * t;
+            const w_air     = 7850 * A * 9.81 / 1000;
+            const w_buoy    = 1000 * (Math.PI / 4) * D_m * D_m * 9.81 / 1000;
+            const w_unit    = Math.abs(w_buoy - w_air);
+            const F_pullback = mapSoilData.hddMu * w_unit * L + 0.40 * D_m * L;
+            document.getElementById('mp-res-rmin').innerText    = R_min.toFixed(0) + ' m';
+            document.getElementById('mp-res-hdepth').innerText  = h_max.toFixed(1) + ' m';
+            document.getElementById('mp-res-pullback').innerText = Math.round(F_pullback) + ' kN';
+            const si = document.getElementById('mp-hdd-status-icon');
+            const st = document.getElementById('mp-hdd-status-text');
+            if(F_pullback > 5000) {
+                si.className = 'w-8 h-8 rounded-full bg-red-500/20 text-red-500 flex items-center justify-center text-sm shrink-0';
+                si.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+                st.innerText = 'Çok yüksek çekme kuvveti. Özel ekipman gerekli.';
+            } else if(F_pullback > 2000) {
+                si.className = 'w-8 h-8 rounded-full bg-brand-500/20 text-brand-500 flex items-center justify-center text-sm shrink-0';
+                si.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
+                st.innerText = 'Orta-büyük HDD makinesi önerilir (200–300 ton).';
+            } else {
+                si.className = 'w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center text-sm shrink-0';
+                si.innerHTML = '<i class="fa-solid fa-shield-check"></i>';
+                st.innerText = 'Standart HDD ekipmanı yeterli. Tasarım uygun.';
+            }
         }
 
         function updateMohr() {
