@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>M-Plan | Jeoteknik Zeka - M. Mühendislik A.Ş.</title>
+    
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- LEAFLET CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'], heading: ['Outfit', 'sans-serif'] },
+                    colors: {
+                        brand: { 50: '#fffbeb', 100: '#fef3c7', 500: '#f59e0b', 600: '#d97706', 900: '#78350f' },
+                        dark: { 900: '#0f172a', 800: '#1e293b', 950: '#020617', 700: '#334155' }
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'float-delayed': 'float 6s ease-in-out 3s infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-15px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+
+        /* KATI LAYOUT KURALLARI */
+        html, body { width: 100vw; height: 100vh; overflow: hidden; margin: 0; padding: 0; }
+        body { background-color: #020617; color: #f8fafc; transition: background-color 0.3s, color 0.3s; }
+        
+        /* SEKME VE GÖRÜNÜM AYARLARI */
+        .view-section { display: none; height: 100%; width: 100%; overflow-y: auto; overflow-x: hidden; padding-bottom: 100px; }
+        @media (min-width: 1024px) { .view-section { padding-bottom: 40px; } }
+        .view-section.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* ANASAYFA ŞOV EFEKTLERİ */
+        .bg-grid-pattern { background-image: linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 40px 40px; mask-image: radial-gradient(ellipse at center, black 20%, transparent 70%); -webkit-mask-image: radial-gradient(ellipse at center, black 20%, transparent 70%); }
+        .hero-target-ring { animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite; }
+        @keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.5); } 100% { box-shadow: 0 0 0 30px rgba(245, 158, 11, 0); } }
+
+        /* HAVA DURUMU (TICKER) */
+        .ticker-wrap { width: 100%; height: 40px; flex-shrink: 0; background-color: #0f172a; border-top: 1px solid #1e293b; display: flex; align-items: center; overflow: hidden; z-index: 60; }
+        .ticker { display: inline-block; white-space: nowrap; padding-right: 100%; animation: ticker 30s linear infinite; }
+        @keyframes ticker { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
+        .ticker-item { padding: 0 2rem; font-size: 0.875rem; color: #cbd5e1; font-weight: 500; }
+        .ticker-item i { color: #f59e0b; margin-right: 6px; }
+
+        /* ARAÇ SLIDERLARI */
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #f59e0b; cursor: pointer; margin-top: -6px; box-shadow: 0 0 10px rgba(245,158,11,0.5); }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #334155; border-radius: 2px; }
+
+        /* GÜNEŞ MODU */
+        body.sun-mode { background-color: #f1f5f9 !important; color: #0f172a !important; }
+        body.sun-mode .bg-dark-950, body.sun-mode .bg-dark-900, body.sun-mode .bg-dark-800 { background-color: #ffffff !important; border-color: #cbd5e1 !important; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05) !important;}
+        body.sun-mode .text-white { color: #0f172a !important; }
+        body.sun-mode .text-slate-400, body.sun-mode .text-slate-300 { color: #475569 !important; }
+        body.sun-mode .border-dark-800, body.sun-mode .border-dark-700, body.sun-mode .border-slate-700 { border-color: #cbd5e1 !important; }
+        body.sun-mode input, body.sun-mode textarea, body.sun-mode select { background-color: #f8fafc !important; color: #0f172a !important; border-color: #cbd5e1 !important; }
+        
+        /* HARİTA EFEKTLERİ */
+        .leaflet-container { background: #020617; font-family: 'Inter', sans-serif; }
+        .leaflet-control-attribution { display: none !important; }
+        #real-map { z-index: 1; }
+        .dark-map-filter { filter: brightness(60%) contrast(110%) saturate(80%); transition: filter 0.3s; }
+        body.sun-mode .dark-map-filter { filter: brightness(100%) contrast(100%) saturate(100%) !important; }
+        .map-target-ring { animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite; }
+        @keyframes ping { 75%, 100% { transform: scale(2); opacity: 0; } }
+
+        /* ŞOV EFEKTLERİ (AI, Kazık, Kutu) */
+        .pile-texture { background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.05) 10px, rgba(255,255,255,0.05) 20px); }
+        .ai-scan-line { position: absolute; width: 100%; height: 2px; background: #f59e0b; box-shadow: 0 0 15px 2px #f59e0b; animation: aiScan 3s cubic-bezier(0.4, 0, 0.2, 1) infinite; z-index: 20; }
+        @keyframes aiScan { 0% { top: 0; opacity: 0; } 10%, 90% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
+        .ai-box { position: absolute; border: 2px solid transparent; opacity: 0; transform: scale(1.1); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 25; }
+        .ai-box.active { opacity: 1; transform: scale(1); }
+        .typing-cursor::after { content: '█'; animation: blink 1s step-start infinite; color: #10b981; }
+        @keyframes blink { 50% { opacity: 0; } }
+        .radar-sweep { position: absolute; top: 50%; left: 50%; width: 200%; height: 200%; background: conic-gradient(from 0deg, transparent 70%, rgba(16, 185, 129, 0.4) 100%); transform-origin: 0 0; animation: radarSpin 4s linear infinite; }
+        @keyframes radarSpin { 100% { transform: rotate(360deg); } }
+        .grid-3d { perspective: 1000px; transform-style: preserve-3d; }
+        .grid-3d-inner { width: 100%; height: 100%; background-image: linear-gradient(rgba(16, 185, 129, 0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(16, 185, 129, 0.3) 1px, transparent 1px); background-size: 20px 20px; transform: rotateX(60deg) rotateZ(45deg); animation: gridMove 10s linear infinite; }
+        @keyframes gridMove { 100% { background-position: 100px 100px; } }
+    </style>
+</head>
+<body class="antialiased flex flex-col h-screen">
+
+    <!-- ÜST MENÜ -->
+    <header class="bg-dark-900 border-b border-dark-800 h-[70px] flex-shrink-0 flex items-center justify-between px-4 md:px-6 z-40 relative transition-colors">
+        
+        <!-- Logo ve Mega Menü -->
+        <div class="flex items-center gap-6">
+            <!-- M-PLAN RESMİ BLUEPRINT LOGO ENTEGRASYONU -->
+            <div class="flex items-center gap-3 cursor-pointer" onclick="switchView('home')">
+                <img src="image_93dca8.jpg" alt="M-Plan Kurumsal Logo" class="h-10 w-10 object-contain rounded-xl border border-brand-500/30 shadow-[0_0_15px_rgba(245,158,11,0.35)] saturate-[1.1] contrast-[1.05]" onerror="this.src='https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=100&q=80'">
+                <h1 class="font-heading text-2xl font-bold tracking-wide text-white">M-<span class="text-brand-500">Plan</span></h1>
+            </div>
+            
+            <!-- MEGA MENÜ -->
+            <div class="hidden lg:flex relative group z-50">
+                <button class="bg-brand-500/10 hover:bg-brand-500 text-brand-500 hover:text-dark-950 border border-brand-500/50 px-5 py-2 rounded-xl font-bold flex items-center gap-3 transition-all shadow-[0_0_15px_rgba(245,158,11,0.2)]">
+                    <i class="fa-solid fa-border-all text-lg"></i> FONKSİYONLAR <i class="fa-solid fa-chevron-down text-xs ml-1"></i>
+                </button>
+                <div class="absolute left-0 top-full pt-4 w-[600px] max-w-[80vw] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
+                    <div class="bg-dark-900/95 backdrop-blur-xl border border-dark-700 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] p-6 grid grid-cols-2 gap-6 relative">
+                        <!-- Küçük Ok İşareti -->
+                        <div class="absolute -top-2 left-10 w-4 h-4 bg-dark-900 border-l border-t border-dark-700 transform rotate-45"></div>
+                        
+                        <div>
+                            <h4 class="text-xs font-bold text-slate-500 mb-3 uppercase tracking-wider pl-2 border-l-2 border-slate-700">Jeoteknik Etüt</h4>
+                            <button onclick="switchView('map')" class="w-full text-left p-3 hover:bg-dark-800 rounded-xl transition-colors mb-2 flex items-center gap-4 group/btn">
+                                <div class="w-12 h-12 rounded-lg bg-dark-950 flex items-center justify-center text-brand-500 border border-dark-800 group-hover/btn:border-brand-500 transition-colors shadow-inner flex-shrink-0"><i class="fa-solid fa-map-location-dot text-xl group-hover/btn:scale-110 transition-transform"></i></div>
+                                <div><p class="text-white font-bold text-sm">Harita & Analiz</p><p class="text-[11px] text-slate-400 mt-0.5">Koordinat bazlı gerçek zamanlı rapor</p></div>
+                            </button>
+                            <button onclick="switchView('tools')" class="w-full text-left p-3 hover:bg-dark-800 rounded-xl transition-colors mb-2 flex items-center gap-4 group/btn">
+                                <div class="w-12 h-12 rounded-lg bg-dark-950 flex items-center justify-center text-brand-500 border border-dark-800 group-hover/btn:border-brand-500 transition-colors shadow-inner flex-shrink-0"><i class="fa-solid fa-calculator text-xl group-hover/btn:scale-110 transition-transform"></i></div>
+                                <div><p class="text-white font-bold text-sm">Araçlar & Simülasyon</p><p class="text-[11px] text-slate-400 mt-0.5">Mohr, Boussinesq ve TBDY</p></div>
+                            </button>
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-bold text-slate-500 mb-3 uppercase tracking-wider pl-2 border-l-2 border-slate-700">İleri Düzey Sistemler</h4>
+                            <button onclick="switchView('boredpile')" class="w-full text-left p-3 hover:bg-dark-800 rounded-xl transition-colors mb-2 flex items-center gap-4 group/btn">
+                                <div class="w-12 h-12 rounded-lg bg-dark-950 flex items-center justify-center text-brand-500 border border-dark-800 group-hover/btn:border-brand-500 transition-colors shadow-inner flex-shrink-0"><i class="fa-solid fa-arrow-down-long text-xl group-hover/btn:scale-110 transition-transform"></i></div>
+                                <div><p class="text-white font-bold text-sm">Fore Kazık</p><p class="text-[11px] text-slate-400 mt-0.5">Taşıma gücü ve metraj hesapları</p></div>
+                            </button>
+                            <button onclick="switchView('sheetpile')" class="w-full text-left p-3 hover:bg-dark-800 rounded-xl transition-colors mb-4 flex items-center gap-4 group/btn">
+                                <div class="w-12 h-12 rounded-lg bg-dark-950 flex items-center justify-center text-brand-500 border border-dark-800 group-hover/btn:border-brand-500 transition-colors shadow-inner flex-shrink-0"><i class="fa-solid fa-grip-lines-vertical text-xl group-hover/btn:scale-110 transition-transform"></i></div>
+                                <div><p class="text-white font-bold text-sm">Palplanş</p><p class="text-[11px] text-slate-400 mt-0.5">Tonaj ve yapay zeka kesit önerisi</p></div>
+                            </button>
+                            <button onclick="switchView('ai-lab')" class="w-full text-left p-3 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 rounded-xl transition-colors flex items-center gap-4 group/btn relative overflow-hidden">
+                                <div class="absolute right-0 top-0 w-16 h-16 bg-emerald-500/20 rounded-full blur-xl"></div>
+                                <div class="w-12 h-12 rounded-lg bg-emerald-500 flex items-center justify-center text-dark-950 group-hover/btn:scale-110 transition-transform shadow-[0_0_15px_rgba(16,185,129,0.5)] flex-shrink-0"><i class="fa-solid fa-microchip text-xl"></i></div>
+                                <div><p class="text-emerald-500 font-bold text-sm">M-Plan AI Lab <span class="bg-emerald-500 text-dark-950 text-[9px] px-1.5 py-0.5 rounded animate-pulse ml-1">YENİ</span></p><p class="text-[11px] text-emerald-500/70 mt-0.5">Görüntü işleme ve karot analizi</p></div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sağ Navigasyon Kümesi -->
+        <nav class="hidden lg:flex gap-4 xl:gap-6 ml-auto mr-4">
+            <button onclick="switchView('dashboard')" class="nav-btn text-slate-400 font-medium hover:text-brand-500 flex items-center gap-2" data-target="dashboard"><i class="fa-solid fa-folder-open"></i> Arşiv</button>
+            <button onclick="switchView('news')" class="nav-btn text-slate-400 font-medium hover:text-brand-500" data-target="news">Haberler</button>
+            <button onclick="switchView('pricing')" class="nav-btn text-slate-400 font-medium hover:text-brand-500" data-target="pricing"><i class="fa-solid fa-crown text-brand-500 mr-1"></i> Premium</button>
+            <button onclick="switchView('contact')" class="nav-btn text-slate-400 font-medium hover:text-brand-500" data-target="contact">İletişim</button>
+        </nav>
+
+        <!-- Sağ Taraf (Modlar, Dil, Giriş) -->
+        <div class="flex items-center gap-3 md:gap-4 lg:border-l border-dark-700 lg:pl-6">
+            <button onclick="toggleSunMode()" id="sun-mode-btn" class="w-9 h-9 rounded-full bg-dark-800 border border-dark-700 text-slate-400 hover:text-brand-500 flex items-center justify-center transition-all shadow-sm flex-shrink-0" title="Arazi/Güneş Modu"><i class="fa-solid fa-sun"></i></button>
+            
+            <div class="relative group hidden sm:block z-50">
+                <button class="flex items-center gap-1 text-slate-300 hover:text-brand-500 text-sm font-medium transition-colors h-10">TR <i class="fa-solid fa-chevron-down text-[10px]"></i></button>
+                <div class="absolute right-0 top-full pt-1 w-32 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+                    <div class="bg-dark-800 border border-dark-700 rounded-lg shadow-xl relative">
+                        <div class="absolute -top-2 right-4 w-4 h-4 bg-dark-800 border-l border-t border-dark-700 transform rotate-45"></div>
+                        <button onclick="switchLanguage('TR')" class="relative z-10 w-full text-left px-4 py-2 text-sm text-brand-500 bg-dark-900/50 hover:bg-dark-700 first:rounded-t-lg transition-colors font-bold">Türkçe</button>
+                        <button onclick="switchLanguage('EN')" class="relative z-10 w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-dark-700 hover:text-white last:rounded-b-lg transition-colors">English</button>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="openModal('registerModal')" class="hidden md:block text-slate-300 hover:text-brand-500 text-sm font-medium whitespace-nowrap">Giriş Yap</button>
+            <button onclick="openModal('registerModal')" class="hidden sm:block bg-brand-500 hover:bg-brand-600 text-dark-950 font-bold py-1.5 px-4 rounded-lg text-sm transition-all shadow-lg shadow-brand-500/20 whitespace-nowrap">Kayıt Ol</button>
+            
+            <!-- Mobil Hamburger -->
+            <button onclick="openModal('mobileMenuModal')" class="lg:hidden text-slate-300 hover:text-white ml-2"><i class="fa-solid fa-bars text-2xl"></i></button>
+        </div>
+    </header>
+
+    <!-- ANA İÇERİK -->
+    <main class="flex-1 min-h-0 relative bg-dark-950">
+
+        <!-- 1. ANASAYFA VIEW (YENİ ŞOV TASARIMI & TAM LOGO ENTEGRASYONU) -->
+        <section id="view-home" class="view-section active p-6 md:p-12 lg:p-20 relative overflow-hidden">
+            <!-- Arka Plan Grid Şovu -->
+            <div class="absolute inset-0 bg-grid-pattern pointer-events-none z-0 opacity-30"></div>
+            <!-- Parlayan Işık Küreleri -->
+            <div class="absolute top-1/4 -left-32 w-[500px] h-[500px] bg-brand-500/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
+            <div class="absolute bottom-1/4 right-0 w-[400px] h-[400px] bg-blue-500/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
+
+            <div class="max-w-7xl mx-auto relative z-10">
+                <div class="grid lg:grid-cols-2 gap-12 items-center">
+                    
+                    <!-- SOL: Başlık ve Metin -->
+                    <div class="relative z-20">
+                        <div class="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-dark-800 border border-dark-700 text-slate-300 text-xs font-bold tracking-wider mb-6 shadow-lg shadow-dark-900/50 backdrop-blur-md">
+                            <!-- Minyatür M-Plan Logosu -->
+                            <img src="image_93dca8.jpg" class="w-5 h-5 rounded-md object-cover border border-brand-500/20 shadow-md">
+                            <span class="w-2 h-2 rounded-full bg-brand-500 shadow-[0_0_8px_#f59e0b] animate-pulse"></span> M. Mühendislik A.Ş. Güvencesiyle
+                        </div>
+                        <h2 class="font-heading text-5xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6 text-white tracking-tight">
+                            Mühendisliğin <br>
+                            <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-500 to-orange-400 drop-shadow-lg">Dijital İkizi</span>
+                        </h2>
+                        <p class="text-slate-400 text-lg md:text-xl mb-10 leading-relaxed max-w-lg font-light">
+                            Topografyayı, litolojiyi ve sismik riskleri saniyeler içinde analiz edin. M-Plan ile sondaj öncesi kusursuz fizibilite için sahayı ekranınıza taşıyın.
+                        </p>
+                        <div class="flex flex-wrap gap-4">
+                            <button onclick="switchView('map')" class="bg-brand-500 hover:bg-brand-400 text-dark-950 font-bold py-4 px-8 rounded-xl transition-all flex items-center gap-3 text-lg shadow-[0_0_30px_rgba(245,158,11,0.3)] hover:-translate-y-1">
+                                <i class="fa-solid fa-earth-europe text-xl"></i> Haritada Keşfet
+                            </button>
+                            <button onclick="switchView('ai-lab')" class="bg-dark-800 hover:bg-dark-700 text-white font-bold py-4 px-8 rounded-xl border border-dark-700 transition-all flex items-center gap-3 text-lg hover:-translate-y-1">
+                                <i class="fa-solid fa-microchip text-brand-500"></i> AI Lab'ı İncele
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- SAĞ: M-Plan Gerçek Teknik Çizim Logosu (İnsan Fotoğrafları Temizlendi) -->
+                    <div class="relative w-full h-[500px] hidden lg:flex items-center justify-center perspective-1000">
+                        <div class="relative w-[95%] h-[420px] rounded-3xl overflow-hidden border border-dark-700 shadow-[0_25px_60px_rgba(0,0,0,0.65)] z-10 transform transition-transform hover:scale-[1.015] duration-500 bg-dark-900 flex items-center justify-center p-4">
+                            <!-- Yüklenen M-Plan Şeması Tam Olarak Gösteriliyor -->
+                            <img src="image_93dca8.jpg" alt="M-Plan Blueprint Scheme" class="w-full h-full object-contain saturate-[1.25] contrast-[1.08] filter drop-shadow-[0_0_20px_rgba(245,158,11,0.15)]">
+                            
+                            <!-- Harita Ortası Nabız Tarama Çizgisi -->
+                            <div class="absolute inset-0 bg-brand-500/5 mix-blend-overlay pointer-events-none"></div>
+                        </div>
+
+                        <!-- Float Kart 1: Süre -->
+                        <div class="absolute -bottom-6 -left-6 bg-dark-900/80 backdrop-blur-xl border border-dark-600 p-4 rounded-2xl shadow-2xl flex items-center gap-4 z-30 transform hover:-translate-y-2 transition-transform duration-500">
+                            <div class="w-14 h-14 rounded-full bg-brand-500/20 flex items-center justify-center text-brand-500 text-2xl shadow-inner"><i class="fa-solid fa-bolt"></i></div>
+                            <div><p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Analiz Süresi</p><p class="font-heading font-bold text-2xl text-white">1.2 Saniye</p></div>
+                        </div>
+
+                        <!-- Float Kart 2: Veri Akışı -->
+                        <div class="absolute -top-10 -right-4 bg-dark-900/80 backdrop-blur-xl border border-dark-600 p-4 rounded-2xl shadow-2xl flex flex-col gap-2 z-30 w-48 transform hover:-translate-y-2 transition-transform duration-500 delay-100">
+                            <div class="flex items-center gap-2 mb-1">
+                                <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                                <span class="text-[10px] text-slate-300 font-mono uppercase">Veri Akışı Aktif</span>
+                            </div>
+                            <div class="w-full bg-dark-950 rounded-full h-1.5 overflow-hidden"><div class="bg-emerald-500 h-full w-full opacity-50"></div></div>
+                            <div class="flex justify-between text-[10px] font-bold mt-1"><span class="text-slate-500">M-Plan Ağ</span><span class="text-emerald-400">SENKRONİZE</span></div>
+                        </div>
+
+                        <!-- Float Kart 3: TBDY Etiketi -->
+                        <div class="absolute top-1/2 -right-12 transform -translate-y-1/2 bg-[#020617]/90 backdrop-blur-md border border-brand-500/30 p-3 rounded-xl shadow-2xl z-20 hover:-translate-y-2 transition-transform duration-500 delay-200">
+                            <p class="text-[9px] text-brand-500 font-mono mb-1">DEPREM YÖNETMELİĞİ</p>
+                            <p class="text-white font-bold text-sm">TBDY-2018 Hazır</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alt İstatistikler -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mt-20 mb-8 pt-10 border-t border-dark-800 relative z-20">
+                    <div class="text-center group">
+                        <p class="text-4xl lg:text-5xl font-heading font-bold text-white mb-2 group-hover:text-brand-500 transition-colors">1,245</p>
+                        <p class="text-[11px] text-slate-500 font-bold uppercase tracking-widest">Bugün Analiz</p>
+                    </div>
+                    <div class="text-center md:border-l border-dark-800 group">
+                        <p class="text-4xl lg:text-5xl font-heading font-bold text-white mb-2 group-hover:text-brand-500 transition-colors">45K<span class="text-brand-500">+</span></p>
+                        <p class="text-[11px] text-slate-500 font-bold uppercase tracking-widest">Taranan Hektar</p>
+                    </div>
+                    <div class="text-center border-dark-800 mt-6 md:mt-0 md:border-l group">
+                        <p class="text-4xl lg:text-5xl font-heading font-bold text-brand-500 mb-2 drop-shadow-[0_0_10px_rgba(245,158,11,0.5)]">3,420</p>
+                        <p class="text-[11px] text-brand-500/80 font-bold uppercase tracking-widest">Aktif Mühendis</p>
+                    </div>
+                    <div class="text-center border-l border-dark-800 mt-6 md:mt-0 group">
+                        <p class="text-4xl lg:text-5xl font-heading font-bold text-white mb-2 group-hover:text-emerald-500 transition-colors">%88</p>
+                        <p class="text-[11px] text-slate-500 font-bold uppercase tracking-widest">Litoloji Doğruluğu</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. HARİTA VE ANALİZ VIEW (GOOGLE MAPS UYDU ENTEGRASYONU & CBS DESTEĞİ) -->
+        <section id="view-map" class="view-section w-full h-full relative p-0 overflow-hidden">
+            <div id="real-map" class="absolute inset-0 w-full h-full dark-map-filter"></div>
+            
+            <div class="absolute inset-0 pointer-events-none z-10 flex flex-col justify-between p-4 md:p-6">
+                <!-- Sol Üst: Arama Barı -->
+                <div class="flex flex-col gap-2 pointer-events-auto w-full max-w-sm">
+                    <div class="bg-dark-900/95 backdrop-blur border border-dark-700 rounded-lg p-3 shadow-lg flex items-center gap-3 transition-colors focus-within:border-brand-500">
+                        <i class="fa-solid fa-magnifying-glass text-slate-400 ml-1"></i>
+                        <input type="text" placeholder="Koordinat, şehir veya parsel ara..." class="bg-transparent border-none outline-none text-sm text-white w-full placeholder-slate-500">
+                    </div>
+                </div>
+
+                <!-- SAĞ ÜST CBS KATMAN KONTROL PANELİ -->
+                <div class="absolute top-20 right-4 pointer-events-auto z-30">
+                    <div class="bg-dark-900/90 backdrop-blur-md border border-dark-700 rounded-2xl p-4 shadow-xl w-60">
+                        <h4 class="text-xs font-bold text-brand-500 uppercase tracking-widest mb-3 border-b border-dark-800 pb-2"><i class="fa-solid fa-layer-group mr-1.5"></i> CBS Sismik Katmanlar</h4>
+                        <div class="space-y-3">
+                            <label class="flex items-center gap-3 cursor-pointer group text-sm">
+                                <input type="checkbox" id="chk-faultlines" onchange="toggleFaultLines()" class="w-4 h-4 rounded accent-brand-500 cursor-pointer">
+                                <span class="text-slate-300 group-hover:text-white transition-colors font-medium">Diri Fay Hatları</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer group text-sm">
+                                <input type="checkbox" id="chk-earthquakes" onchange="toggleEarthquakeMarkers()" class="w-4 h-4 rounded accent-red-500 cursor-pointer">
+                                <span class="text-slate-300 group-hover:text-white transition-colors font-medium">Son Depremler (AFAD)</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none">
+                    <div class="relative flex items-center justify-center">
+                        <div class="absolute w-12 h-12 rounded-full border border-brand-500/50 map-target-ring"></div>
+                        <i class="fa-solid fa-plus text-2xl text-brand-500 drop-shadow-[0_0_8px_rgba(245,158,11,0.8)]"></i>
+                    </div>
+                </div>
+                
+                <div class="w-full max-w-md mx-auto pointer-events-auto pb-[70px] lg:pb-0">
+                    <div class="bg-dark-900/95 backdrop-blur-xl border border-brand-500/30 rounded-2xl p-5 shadow-[0_10px_40px_rgba(0,0,0,0.8)]">
+                        <div class="flex justify-between items-start mb-4 border-b border-dark-800 pb-4">
+                            <div><p class="text-[10px] text-brand-500 font-bold uppercase tracking-wider mb-1">Hedef Koordinat (WGS84)</p><h3 id="display-latlng" class="text-white font-mono font-semibold text-lg tracking-tight">Hesaplanıyor...</h3></div>
+                            <div class="w-10 h-10 rounded-full bg-dark-800 flex items-center justify-center text-brand-500"><i class="fa-solid fa-satellite-dish animate-pulse"></i></div>
+                        </div>
+                        <button onclick="startRealAnalysis()" class="w-full bg-brand-500 hover:bg-brand-600 text-dark-950 font-bold py-3.5 rounded-xl flex justify-center items-center gap-2 transition-colors shadow-lg shadow-brand-500/20 text-lg group">
+                            <i class="fa-solid fa-microscope text-xl group-hover:scale-110 transition-transform"></i> M-Plan Analizi Başlat
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. ARŞİVİM (DASHBOARD) VIEW -->
+        <section id="view-dashboard" class="view-section p-6 md:p-12 lg:p-20">
+            <div class="max-w-6xl mx-auto pb-12">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                    <div class="flex items-center gap-4">
+                        <div class="w-16 h-16 rounded-full bg-brand-500 flex items-center justify-center text-dark-950 text-2xl font-bold font-heading shadow-lg">MY</div>
+                        <div><h2 class="font-heading text-3xl font-bold text-white">Hoş Geldin, Mühendis Yılmaz</h2><p class="text-slate-400">M-Plan Çalışma Alanı ve Geçmiş Raporlar</p></div>
+                    </div>
+                </div>
+                <div class="bg-dark-900 border border-dark-800 rounded-2xl overflow-hidden shadow-xl">
+                    <div class="p-6 border-b border-dark-800 flex flex-col md:flex-row justify-between items-start md:items-center bg-dark-950/50 gap-4">
+                        <h3 class="font-heading font-bold text-lg text-white">Zemin Analiz Arşivi</h3>
+                        <div class="flex gap-3 w-full md:w-auto">
+                            <div class="bg-dark-800 border border-dark-700 rounded-lg px-3 py-2 flex items-center gap-2 w-full md:w-64">
+                                <i class="fa-solid fa-search text-slate-500 text-sm"></i>
+                                <input type="text" placeholder="Konum veya proje ara..." class="bg-transparent border-none outline-none text-sm text-white w-full placeholder-slate-500">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse min-w-[600px]">
+                            <thead><tr class="bg-dark-800/50 text-slate-400 text-xs uppercase tracking-wider"><th class="p-4 font-semibold">Tarih</th><th class="p-4 font-semibold">Lokasyon / Proje</th><th class="p-4 font-semibold">Baskın Zemin</th><th class="p-4 font-semibold text-right">Rapor / PDF</th></tr></thead>
+                            <tbody class="text-sm divide-y divide-dark-800">
+                                <tr class="hover:bg-dark-800/30 transition-colors"><td class="p-4 text-slate-300">Bugün, 10:45</td><td class="p-4 font-medium text-white">İzmir, Bayraklı</td><td class="p-4"><span class="bg-red-500/10 text-red-500 px-2 py-1 rounded text-xs font-bold border border-red-500/20 whitespace-nowrap">Alüvyon (Sıvılaşma Riski)</span></td><td class="p-4 text-right"><button onclick="showCustomMessage('Önizleme Yükleniyor', 'Detaylar açılıyor...')" class="text-slate-400 hover:text-brand-500 mr-3 p-2 rounded-lg hover:bg-brand-500/10 transition-colors"><i class="fa-solid fa-eye text-lg"></i></button><button onclick="downloadPDFMock('İzmir_Rapor.pdf')" class="text-slate-400 hover:text-red-500 p-2 rounded-lg hover:bg-red-500/10 transition-colors"><i class="fa-solid fa-file-pdf text-lg"></i></button></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. ARAÇLAR (ŞOV) VIEW -->
+        <section id="view-tools" class="view-section p-6 md:p-12 lg:p-20">
+            <div class="max-w-7xl mx-auto pb-12">
+                <div class="mb-10">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-500 text-xs font-bold tracking-wider mb-4"><i class="fa-solid fa-bolt"></i> İLERİ DÜZEY SİMÜLASYONLAR</div>
+                    <h2 class="font-heading text-4xl font-bold mb-2 text-white">Canlı Mühendislik <span class="text-brand-500">Araçları</span></h2>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Mohr Çemberi -->
+                    <div class="lg:col-span-2 bg-dark-900 border border-dark-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col relative group">
+                        <div class="p-6 border-b border-dark-800 bg-dark-950/50 flex justify-between items-center">
+                            <h3 class="font-bold text-white text-lg"><i class="fa-solid fa-circle-notch text-brand-500 mr-2"></i>Canlı Mohr-Coulomb Analizi</h3>
+                            <span class="bg-brand-500/20 text-brand-500 text-[10px] px-2 py-1 rounded-full animate-pulse border border-brand-500/30">Gerçek Zamanlı Render</span>
+                        </div>
+                        <div class="p-6 flex flex-col md:flex-row gap-8 flex-grow">
+                            <div class="w-full md:w-1/3 space-y-6">
+                                <div><div class="flex justify-between mb-1"><label class="text-xs font-bold text-slate-400">Asal Gerilme (σ₁)</label><span id="val-sigma1" class="text-white text-sm font-bold">400 kPa</span></div><input type="range" id="slider-sigma1" min="100" max="600" value="400" oninput="updateMohr()"></div>
+                                <div><div class="flex justify-between mb-1"><label class="text-xs font-bold text-slate-400">Yanal Gerilme (σ₃)</label><span id="val-sigma3" class="text-white text-sm font-bold">150 kPa</span></div><input type="range" id="slider-sigma3" min="50" max="300" value="150" oninput="updateMohr()"></div>
+                                <div class="border-t border-dark-800 pt-4 mt-4">
+                                    <p class="text-[10px] uppercase text-brand-500 font-bold mb-2">Hesaplanan Değerler</p>
+                                    <div class="flex justify-between"><span class="text-sm text-slate-400">Merkez (C):</span><span id="val-center" class="text-sm text-white font-bold">275 kPa</span></div>
+                                    <div class="flex justify-between mt-1"><span class="text-sm text-slate-400">Yarıçap (R):</span><span id="val-radius" class="text-sm text-white font-bold">125 kPa</span></div>
+                                </div>
+                            </div>
+                            <div class="w-full md:w-2/3 bg-dark-950 rounded-xl border border-dark-800 relative overflow-hidden h-64 md:h-auto flex items-center justify-center p-4">
+                                <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PHBhdGggZD0iTTAgMjBoMjBWMHoiIGZpbGw9Im5vbmUiLz48cGF0aCBkPSJNMCAxOS41aDIwTTE5LjUgMHYyMCIgc3Ryb2tlPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMDUpIiBzdHJva2Utd2lkdGg9IjEiLz48L3N2Zz4=')]"></div>
+                                <svg width="100%" height="100%" viewBox="0 0 400 200" class="relative z-10 overflow-visible">
+                                    <line x1="20" y1="180" x2="380" y2="180" stroke="#475569" stroke-width="2" />
+                                    <line x1="40" y1="20" x2="40" y2="190" stroke="#475569" stroke-width="2" />
+                                    <line x1="40" y1="150" x2="380" y2="30" stroke="#ef4444" stroke-width="2" stroke-dasharray="5,5" />
+                                    <circle id="mohr-circle" cx="210" cy="180" r="80" fill="rgba(245, 158, 11, 0.1)" stroke="#f59e0b" stroke-width="3" class="transition-all duration-300 drop-shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
+                                    <circle id="mohr-center-point" cx="210" cy="180" r="4" fill="#fff" class="transition-all duration-300" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Basınç Soğanı -->
+                    <div class="bg-dark-900 border border-dark-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col relative group">
+                        <div class="p-5 border-b border-dark-800 bg-dark-950/50"><h3 class="font-bold text-white text-lg"><i class="fa-solid fa-water text-blue-500 mr-2"></i>Basınç Soğanı</h3></div>
+                        <div class="p-5 flex-grow flex flex-col justify-between">
+                            <div class="mb-4">
+                                <div class="flex justify-between mb-1"><label class="text-xs font-bold text-slate-400">Temel Genişliği (B)</label><span id="val-bulb" class="text-white text-sm font-bold">2.0 m</span></div>
+                                <input type="range" id="slider-bulb" min="1.0" max="5.0" step="0.1" value="2.0" oninput="updateBulb()">
+                            </div>
+                            <div class="bg-dark-950 rounded-lg border border-dark-800 h-48 relative overflow-hidden flex flex-col items-center pt-4">
+                                <div id="foundation-box" class="h-6 bg-slate-300 border-b-4 border-slate-500 z-20 transition-all duration-300" style="width: 40px;"></div>
+                                <div id="bulb-container" class="relative transition-all duration-300 transform origin-top" style="transform: scale(1);">
+                                    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[60px] h-[60px] bg-red-500/30 rounded-full blur-md"></div>
+                                    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[100px] h-[100px] bg-orange-500/20 rounded-full blur-md"></div>
+                                    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[160px] h-[160px] bg-blue-500/10 rounded-full blur-md border border-blue-500/20"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- TBDY Spektrumu -->
+                    <div class="lg:col-span-3 bg-dark-900 border border-dark-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col relative group">
+                        <div class="p-6 border-b border-dark-800 bg-dark-950/50 flex justify-between items-center">
+                            <h3 class="font-bold text-white text-lg"><i class="fa-solid fa-chart-line text-brand-500 mr-2"></i>TBDY-2018 Tasarım Spektrumu</h3>
+                            <div class="bg-dark-800 px-3 py-1 rounded-lg border border-dark-700 flex items-center gap-2">
+                                <span class="text-xs text-slate-400">Zemin Sınıfı:</span>
+                                <select id="select-soil" class="bg-transparent text-white text-sm font-bold outline-none cursor-pointer" onchange="updateSpectrum()">
+                                    <option value="ZA">ZA (Sert Kaya)</option><option value="ZB">ZB (Az Ayrışmış)</option><option value="ZC" selected>ZC (Çok Sıkı/Sert)</option><option value="ZD">ZD (Orta Sıkı)</option><option value="ZE">ZE (Gevşek/Yumuşak)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="p-6 relative h-64 bg-dark-950 flex items-end">
+                            <svg width="100%" height="100%" viewBox="0 0 500 200" preserveAspectRatio="none" class="relative z-10 bottom-8 px-12">
+                                <defs><linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(245, 158, 11, 0.4)" /><stop offset="100%" stop-color="rgba(245, 158, 11, 0)" /></linearGradient></defs>
+                                <line x1="0" y1="40" x2="500" y2="40" stroke="#1e293b" stroke-dasharray="4" />
+                                <line x1="0" y1="100" x2="500" y2="100" stroke="#1e293b" stroke-dasharray="4" />
+                                <line x1="0" y1="160" x2="500" y2="160" stroke="#1e293b" stroke-dasharray="4" />
+                                <polygon id="spectrum-area" points="0,200 20,100 80,40 180,40 400,160 500,180 500,200" fill="url(#chartGrad)" class="transition-all duration-500 ease-out" />
+                                <polyline id="spectrum-line" points="0,200 20,100 80,40 180,40 400,160 500,180" fill="none" stroke="#f59e0b" stroke-width="4" class="transition-all duration-500 drop-shadow-[0_0_8px_rgba(245,158,11,0.8)]" />
+                                <circle id="point-TA" cx="80" cy="40" r="4" fill="#fff" class="transition-all duration-500" />
+                                <circle id="point-TB" cx="180" cy="40" r="4" fill="#fff" class="transition-all duration-500" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. FORE KAZIK VIEW -->
+        <section id="view-boredpile" class="view-section p-6 md:p-12 lg:p-20 relative">
+            <div class="max-w-7xl mx-auto relative z-10 pb-16">
+                <div class="mb-10"><h2 class="font-heading text-4xl font-bold mb-2 text-white">Fore Kazık <span class="text-brand-500">Mühendisliği</span></h2></div>
+                <div class="grid lg:grid-cols-12 gap-8 mb-12">
+                    <div class="lg:col-span-8 bg-dark-900 border border-dark-800 rounded-2xl shadow-2xl p-6 md:p-8 flex flex-col relative overflow-hidden">
+                        <h3 class="font-bold text-white text-xl mb-6 flex items-center border-b border-dark-800 pb-4"><i class="fa-solid fa-weight-hanging text-brand-500 mr-3"></i> Taşıma Gücü Simülatörü</h3>
+                        <div class="flex flex-col md:flex-row gap-8 relative z-10">
+                            <div class="w-full md:w-1/2 space-y-6">
+                                <div><div class="flex justify-between mb-1"><label class="text-xs font-bold text-slate-400">Kazık Çapı (D)</label><span id="val-pile-d" class="text-white text-sm font-bold bg-dark-800 px-2 rounded">80 cm</span></div><input type="range" id="slider-pile-d" min="45" max="150" step="5" value="80" oninput="calculatePileCapacity()"></div>
+                                <div><div class="flex justify-between mb-1"><label class="text-xs font-bold text-slate-400">Kazık Boyu (L)</label><span id="val-pile-l" class="text-white text-sm font-bold bg-dark-800 px-2 rounded">15.0 m</span></div><input type="range" id="slider-pile-l" min="5.0" max="40.0" step="0.5" value="15.0" oninput="calculatePileCapacity()"></div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-400 mb-2 uppercase">Zemin Profili</label>
+                                    <select id="select-pile-soil" onchange="calculatePileCapacity()" class="w-full bg-dark-950 border border-slate-700 rounded-lg p-2.5 text-white text-sm focus:outline-none focus:border-brand-500">
+                                        <optgroup label="Kohezyonlu Zeminler">
+                                            <option value="soft_clay" data-friction="15" data-end="300">Yumuşak Kil</option>
+                                            <option value="stiff_clay" data-friction="40" data-end="1200">Sert Kil</option>
+                                        </optgroup>
+                                        <optgroup label="Kohezyonsuz Zeminler">
+                                            <option value="loose_sand" data-friction="25" data-end="800">Gevşek Kum</option>
+                                            <option value="dense_sand" data-friction="60" data-end="2500" selected>Sıkı Kum / Çakıl</option>
+                                        </optgroup>
+                                        <optgroup label="Kayaçlar">
+                                            <option value="weathered_rock" data-friction="150" data-end="6000">Ayrışmış Kaya</option>
+                                            <option value="hard_rock" data-friction="300" data-end="12000">Sağlam Anakaya</option>
+                                        </optgroup>
+                                    </select>
+                                </div>
+                                <div class="bg-dark-950 rounded-xl p-4 border border-dark-800">
+                                    <div class="flex justify-between items-center mb-2"><span class="text-xs text-slate-400 font-bold">Çevre Sürtünmesi:</span><span id="res-pile-qs" class="text-sm text-slate-300">150 Ton</span></div>
+                                    <div class="flex justify-between items-center mb-3 pb-3 border-b border-dark-800"><span class="text-xs text-slate-400 font-bold">Uç Direnci:</span><span id="res-pile-qp" class="text-sm text-slate-300">200 Ton</span></div>
+                                    <div class="flex justify-between items-center"><span class="text-xs text-brand-500 uppercase font-bold">Toplam (Qu):</span><span id="res-pile-qu" class="text-2xl font-bold text-brand-500">350 Ton</span></div>
+                                </div>
+                            </div>
+                            <div class="w-full md:w-1/2 bg-dark-950 rounded-xl border border-dark-800 relative h-64 md:h-auto flex items-start justify-center p-4 overflow-hidden">
+                                <div class="absolute inset-0 flex flex-col"><div class="h-6 w-full bg-[#5c4033] opacity-80 z-10"></div><div id="pile-soil-bg" class="flex-grow w-full bg-[#d2b48c] opacity-40 transition-colors duration-500"></div></div>
+                                <div id="pile-graphic" class="bg-slate-300 border-x border-b-2 border-slate-400 relative z-20 mt-6 rounded-b transition-all duration-300 flex flex-col items-center justify-between" style="width: 40px; height: 120px;"><div class="w-full h-full pile-texture"></div></div>
+                                <div class="absolute right-2 top-6 bottom-0 w-8 border-l border-slate-600 z-10 flex flex-col items-end py-2 text-[9px] text-slate-500"><span id="scale-top">0m</span><span id="scale-bottom" class="mt-auto transition-all duration-300">-15m</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-4 bg-dark-900 border border-dark-800 rounded-2xl shadow-2xl p-6 flex flex-col relative overflow-hidden">
+                        <h3 class="font-bold text-white text-xl mb-4 border-b border-dark-800 pb-4"><i class="fa-solid fa-truck-fast text-blue-500 mr-3"></i> Şantiye Metrajı</h3>
+                        <div class="space-y-4 mb-6 flex-grow">
+                            <div><label class="block text-xs font-bold text-slate-400 mb-1">Toplam Kazık Adedi</label><input type="number" id="input-pile-count" value="120" oninput="calculatePileVolume()" class="w-full bg-dark-950 border border-slate-700 rounded-lg p-2.5 text-white text-sm focus:outline-none focus:border-brand-500"></div>
+                            <div class="bg-dark-950 p-3 rounded-lg border border-dark-800 flex justify-between items-center"><span class="text-xs text-slate-500 font-bold">Seçili Boyutlar:</span><span id="display-pile-dims" class="text-sm font-bold text-white">Ø80 cm, 15.0 m</span></div>
+                        </div>
+                        <div class="bg-dark-950 rounded-xl p-4 border border-blue-500/30">
+                            <div class="flex justify-between items-center mb-3"><div><p class="text-[10px] text-slate-500 uppercase font-bold mb-1">Beton Hacmi (C30)</p><p id="res-pile-concrete" class="text-xl font-bold text-white">904 m³</p></div></div>
+                            <div class="w-full h-px bg-dark-800 mb-3"></div>
+                            <div class="flex justify-between items-center"><div><p class="text-[10px] text-blue-500 uppercase font-bold mb-1">Tahmini Donatı</p><p id="res-pile-rebar" class="text-xl font-bold text-blue-500">99.5 Ton</p></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. PALPLANŞ VIEW -->
+        <section id="view-sheetpile" class="view-section p-6 md:p-12 lg:p-20 relative">
+            <div class="max-w-7xl mx-auto relative z-10 pb-16">
+                <div class="mb-10"><h2 class="font-heading text-4xl font-bold mb-2 text-white">Palplanş <span class="text-brand-500">Mühendisliği</span></h2></div>
+                
+                <div class="grid lg:grid-cols-12 gap-8 mb-12">
+                    <div class="lg:col-span-5 bg-dark-900 border border-dark-800 rounded-2xl shadow-2xl p-6 md:p-8 flex flex-col relative overflow-hidden">
+                        <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-brand-500/10 rounded-full blur-2xl"></div>
+                        <h3 class="font-bold text-white text-xl mb-6 border-b border-dark-800 pb-4"><i class="fa-solid fa-calculator text-brand-500 mr-3"></i> Profil & Metraj</h3>
+                        <div class="space-y-5 flex-grow relative z-10">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 mb-2 uppercase">Genişletilmiş Profil Veritabanı</label>
+                                <select id="sp-profile" onchange="calculateSheetpile()" class="w-full bg-dark-950 border border-slate-700 rounded-lg p-3 text-white text-sm focus:outline-none focus:border-brand-500 cursor-pointer">
+                                    <optgroup label="U-Profiller (PU Serisi)">
+                                        <option value="PU12" data-width="0.6" data-weight="66.1" data-wel="1200" data-type="U">PU 12 (1200 cm³/m) - 66.1 kg/m</option>
+                                        <option value="PU18" data-width="0.6" data-weight="76.9" data-wel="1800" data-type="U" selected>PU 18 (1800 cm³/m) - 76.9 kg/m</option>
+                                        <option value="PU22" data-width="0.6" data-weight="86.1" data-wel="2200" data-type="U">PU 22 (2200 cm³/m) - 86.1 kg/m</option>
+                                        <option value="PU28" data-width="0.6" data-weight="101.8" data-wel="2800" data-type="U">PU 28 (2800 cm³/m) - 101.8 kg/m</option>
+                                        <option value="PU32" data-width="0.6" data-weight="114.1" data-wel="3200" data-type="U">PU 32 (3200 cm³/m) - 114.1 kg/m</option>
+                                    </optgroup>
+                                    <optgroup label="Z-Profiller (AZ / PZ Serisi)">
+                                        <option value="AZ13" data-width="0.67" data-weight="65.3" data-wel="1300" data-type="Z">AZ 13 (1300 cm³/m) - 65.3 kg/m</option>
+                                        <option value="AZ18" data-width="0.63" data-weight="66.3" data-wel="1800" data-type="Z">AZ 18 (1800 cm³/m) - 66.3 kg/m</option>
+                                        <option value="AZ26" data-width="0.68" data-weight="93.6" data-wel="2600" data-type="Z">AZ 26 (2600 cm³/m) - 93.6 kg/m</option>
+                                        <option value="PZ27" data-width="0.708" data-weight="93.5" data-wel="2600" data-type="Z">PZ 27 (2600 cm³/m) - 93.5 kg/m</option>
+                                        <option value="AZ36" data-width="0.67" data-weight="112.3" data-wel="3600" data-type="Z">AZ 36 (3600 cm³/m) - 112.3 kg/m</option>
+                                        <option value="AZ50" data-width="0.7" data-weight="152.0" data-wel="5000" data-type="Z">AZ 50 (5000 cm³/m) - 152.0 kg/m</option>
+                                    </optgroup>
+                                    <optgroup label="Düz Kesit / Özel">
+                                        <option value="AS500" data-width="0.5" data-weight="64.0" data-wel="500" data-type="S">AS 500-12 (Düz Kesit) - 64.0 kg/m</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="block text-xs font-bold text-slate-400 mb-2 uppercase">İksa Uzunluğu (m)</label><input type="number" id="sp-wall" oninput="calculateSheetpile()" value="50" class="w-full bg-dark-950 border border-slate-700 rounded-lg p-3 text-white text-sm"></div>
+                                <div><label class="block text-xs font-bold text-slate-400 mb-2 uppercase">Çakım Boyu (m)</label><input type="number" id="sp-length" oninput="calculateSheetpile()" value="12" class="w-full bg-dark-950 border border-slate-700 rounded-lg p-3 text-white text-sm"></div>
+                            </div>
+                        </div>
+                        <div class="mt-6 bg-dark-950 rounded-xl p-4 border border-brand-500/30 flex justify-between items-center relative z-10">
+                            <div><p class="text-[10px] text-slate-500 uppercase font-bold mb-1">Gereken</p><p id="sp-res-count" class="text-2xl font-bold text-white">84 Adet</p></div>
+                            <div class="text-right"><p class="text-[10px] text-brand-500 uppercase font-bold mb-1">Toplam Çelik</p><p id="sp-res-tons" class="text-3xl font-bold text-brand-500">77.52 Ton</p></div>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-7 bg-dark-900 border border-dark-800 rounded-2xl shadow-2xl p-6 md:p-8 flex flex-col relative overflow-hidden">
+                        <div class="flex justify-between items-center mb-6 border-b border-dark-800 pb-4">
+                            <h3 class="font-bold text-white text-xl flex items-center"><i class="fa-solid fa-cube text-blue-500 mr-3"></i> Canlı Kesit Analizi</h3>
+                            <span id="sp-type-badge" class="bg-blue-500/20 text-blue-500 px-3 py-1 rounded-full text-xs font-bold font-mono">U-TİPİ</span>
+                        </div>
+                        <div class="grid md:grid-cols-2 gap-6 flex-grow">
+                            <div class="bg-dark-950 rounded-xl border border-dark-700 p-4 flex items-center justify-center relative overflow-hidden group">
+                                <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PHBhdGggZD0iTTAgMjBoMjBWMHoiIGZpbGw9Im5vbmUiLz48cGF0aCBkPSJNMCAxOS41aDIwTTE5LjUgMHYyMCIgc3Ryb2tlPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMDUpIiBzdHJva2Utd2lkdGg9IjEiLz48L3N2Zz4=')]"></div>
+                                <svg width="100%" height="150" viewBox="0 0 400 200" class="relative z-10">
+                                    <path id="sp-svg-path" d="M 50,50 L 100,50 L 150,150 L 250,150 L 300,50 L 350,50" fill="none" stroke="#3b82f6" stroke-width="8" class="transition-all duration-500"/>
+                                    <text id="sp-svg-width-text" x="200" y="15" fill="#94a3b8" font-size="12" text-anchor="middle">Genişlik: 600mm</text>
+                                </svg>
+                            </div>
+                            <div class="flex flex-col justify-center space-y-4">
+                                <div>
+                                    <div class="flex justify-between text-xs font-bold mb-1"><span class="text-slate-400">Mukavemet Modülü</span><span id="sp-stat-wel" class="text-white">1800 cm³/m</span></div>
+                                    <div class="w-full bg-dark-950 rounded-full h-2"><div id="sp-bar-wel" class="bg-blue-500 h-2 rounded-full transition-all duration-500" style="width: 36%"></div></div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-xs font-bold mb-1"><span class="text-slate-400">Birim Ağırlık</span><span id="sp-stat-weight" class="text-white">76.9 kg/m</span></div>
+                                    <div class="w-full bg-dark-950 rounded-full h-2"><div id="sp-bar-weight" class="bg-orange-500 h-2 rounded-full transition-all duration-500" style="width: 50%"></div></div>
+                                </div>
+                                <div class="bg-dark-950 p-3 rounded-lg border border-dark-800 mt-2">
+                                    <p class="text-[10px] text-slate-500 uppercase font-bold mb-1">Yorum</p>
+                                    <p id="sp-stat-comment" class="text-xs text-slate-300">Standart iksa projeleri için ideal denge.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid lg:grid-cols-2 gap-8">
+                    <div class="bg-dark-900 border border-dark-800 rounded-2xl shadow-2xl p-6 md:p-8 flex flex-col relative overflow-hidden">
+                        <h3 class="font-bold text-white text-xl mb-6 border-b border-dark-800 pb-4"><i class="fa-solid fa-brain text-emerald-500 mr-3 text-2xl"></i> AI Kesit Önerici</h3>
+                        <div class="mb-8">
+                            <div class="flex justify-between mb-2"><label class="text-xs font-bold text-slate-300 uppercase">Kazı Derinliği (H)</label><span id="val-excavation" class="text-white text-sm font-bold bg-dark-800 px-2 py-1 rounded border border-dark-700">4.5 m</span></div>
+                            <input type="range" id="slider-excavation" min="1.0" max="15.0" step="0.5" value="4.5" oninput="recommendSheetpile()">
+                        </div>
+                        <div class="flex-grow bg-dark-950 rounded-xl p-5 border border-dark-700 flex flex-col justify-center relative overflow-hidden">
+                            <div id="rec-bg-glow" class="absolute right-0 top-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl transition-colors"></div>
+                            <div class="flex items-start gap-4 relative z-10">
+                                <div id="rec-icon" class="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center text-xl shrink-0 transition-colors"><i class="fa-solid fa-check"></i></div>
+                                <div><h4 id="rec-title" class="text-white font-bold text-lg mb-1">PU Serisi (Konsol)</h4><p id="rec-desc" class="text-sm text-slate-400">Tek sıra ankrajsız tasarım yeterlidir.</p></div>
+                            </div>
+                            <div class="mt-5 pt-4 border-t border-dark-800 grid grid-cols-2 gap-4 relative z-10">
+                                <div><p class="text-[10px] text-slate-500 uppercase font-bold">Gerekli Çakım Boyu</p><p id="rec-depth" class="text-lg font-bold text-white">~6.5 m</p></div>
+                                <div><p class="text-[10px] text-slate-500 uppercase font-bold">Öngörülen Deplasman</p><p id="rec-deflection" class="text-lg font-bold text-emerald-500">18 mm</p></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-dark-900 border border-dark-800 rounded-2xl shadow-2xl p-6 flex flex-col relative overflow-hidden items-center justify-center">
+                        <h3 class="absolute top-6 left-6 font-bold text-white text-lg"><i class="fa-solid fa-ruler-horizontal text-slate-400 mr-2"></i>Deplasman Eğrisi</h3>
+                        <div class="relative w-full max-w-[200px] h-64 mt-10 border-l-2 border-dashed border-slate-600 flex items-end">
+                            <div class="absolute top-10 -left-6 w-32 border-t-2 border-slate-500 border-dashed"></div>
+                            <span class="absolute top-5 -left-6 text-[10px] text-slate-500">Zemin Yüzeyi</span>
+                            <div id="excavation-line" class="absolute -right-6 w-24 border-t-2 border-orange-500/50 border-dashed transition-all duration-300" style="top: 80px;"></div>
+                            <span id="excavation-label" class="absolute -right-6 text-[10px] text-orange-500 transition-all duration-300" style="top: 65px;">Kazı (-4.5m)</span>
+                            <svg width="100" height="256" viewBox="0 0 100 256" class="absolute top-0 left-0 overflow-visible">
+                                <path id="wall-deflection-path" d="M 0,0 Q 20,80 0,200 L 0,256" fill="none" stroke="#3b82f6" stroke-width="6" class="transition-all duration-300" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. GEOAI LAB VIEW -->
+        <section id="view-ai-lab" class="view-section p-6 md:p-12 lg:p-20 relative">
+            <div class="max-w-7xl mx-auto relative z-10 pb-16">
+                <div class="flex flex-col md:flex-row items-center justify-between mb-12 gap-6 border-b border-dark-800 pb-8">
+                    <div>
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 text-xs font-bold tracking-wider mb-4">
+                            <i class="fa-solid fa-microchip"></i> YAPAY SİNİR AĞI AKTİF
+                        </div>
+                        <h2 class="font-heading text-4xl md:text-5xl font-bold mb-3 text-white">M-Plan <span class="text-emerald-500">Vision</span> <span class="bg-emerald-500/20 text-emerald-500 text-[10px] px-2 py-1 rounded-full align-middle ml-2 border border-emerald-500/50 animate-pulse">CANLI</span></h2>
+                        <p class="text-slate-400">Görüntü işleme modelleri ile gerçek zamanlı karot çatlak tespiti ve litoloji analizi.</p>
+                    </div>
+                    <button onclick="runAIScan()" id="btn-start-ai" class="bg-emerald-500 hover:bg-emerald-600 text-dark-950 font-bold px-8 py-4 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all flex items-center gap-3 text-lg">
+                        <i class="fa-solid fa-power-off"></i> Analizi Başlat
+                    </button>
+                </div>
+                
+                <div class="grid lg:grid-cols-12 gap-8">
+                    <div class="lg:col-span-8 bg-dark-950 border border-dark-700 rounded-2xl overflow-hidden shadow-[0_0_30px_rgba(16,185,129,0.1)] flex flex-col relative p-2">
+                        <div class="absolute inset-0 border-[4px] border-emerald-500/20 rounded-2xl pointer-events-none"></div>
+                        <div class="absolute top-0 left-4 w-16 h-[2px] bg-emerald-500"></div>
+                        <div class="absolute bottom-0 right-4 w-16 h-[2px] bg-emerald-500"></div>
+                        
+                        <div class="relative w-full h-[500px] bg-dark-900 rounded-xl overflow-hidden group">
+                            <img src="http://googleusercontent.com/image_collection/image_retrieval/13340625096043356191" class="absolute inset-0 w-full h-full object-cover grayscale opacity-40 transition-all duration-700" id="ai-core-image">
+                            <div id="ai-radar" class="hidden absolute inset-0 overflow-hidden mix-blend-screen pointer-events-none">
+                                <div class="radar-sweep"></div>
+                                <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PHBhdGggZD0iTTAgMGg0MHY0MEgweiIgZmlsbD0ibm9uZSIvPjxwYXRoIGQ9Ik0wIDM5LTVoNDBNMzkuNSAwdi00MCIgc3Ryb2tlPSJyZ2JhKDE2LCAxODUsIDEyOSwgMC4xKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9zdmc+')]"></div>
+                            </div>
+                            <div id="ai-boxes-container" class="absolute inset-0 pointer-events-none"></div>
+                            <div id="ai-laser" class="hidden ai-scan-line bg-emerald-500 shadow-[0_0_15px_2px_#10b981]"></div>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-4 flex flex-col gap-6">
+                        <div class="bg-[#050505] border border-dark-700 rounded-2xl p-5 flex-grow font-mono flex flex-col relative overflow-hidden shadow-xl">
+                            <div class="absolute top-0 left-0 w-full h-8 bg-dark-900 border-b border-dark-700 flex items-center px-4 gap-2">
+                                <div class="w-3 h-3 rounded-full bg-red-500"></div><div class="w-3 h-3 rounded-full bg-yellow-500"></div><div class="w-3 h-3 rounded-full bg-emerald-500"></div>
+                                <span class="text-[10px] text-slate-500 ml-2">sys/ai_vision_kernel.sh</span>
+                            </div>
+                            <div class="mt-8 flex-grow overflow-y-auto" id="ai-terminal-output">
+                                <p class="text-emerald-500/50 text-xs mb-2">M-Plan AI Core System Ready. Awaiting start command...</p>
+                                <div class="text-emerald-500 text-sm typing-cursor" id="terminal-active-line">_</div>
+                            </div>
+                        </div>
+
+                        <div class="bg-dark-900 border border-dark-800 rounded-2xl p-5 shadow-xl relative overflow-hidden h-48 flex flex-col justify-between">
+                            <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl z-0"></div>
+                            <div class="absolute right-2 top-8 w-32 h-32 grid-3d opacity-30 pointer-events-none z-0"><div class="grid-3d-inner"></div></div>
+                            <h4 class="text-white font-bold mb-4 relative z-10"><i class="fa-solid fa-tower-broadcast text-emerald-500 mr-2"></i>Gerçek Zamanlı Veri</h4>
+                            <div class="grid grid-cols-2 gap-4 relative z-10">
+                                <div class="bg-dark-950 p-3 rounded-xl border border-dark-700"><p class="text-[10px] text-slate-500 uppercase font-bold">Ağ Güveni</p><p id="ai-conf" class="text-2xl font-bold text-slate-600">--%</p></div>
+                                <div class="bg-dark-950 p-3 rounded-xl border border-dark-700"><p class="text-[10px] text-slate-500 uppercase font-bold">Kırık/Damar</p><p id="ai-det" class="text-2xl font-bold text-slate-600">0</p></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 8. HABERLER VIEW (GÜNCELLENDİ: İhale, Karar, Deprem) -->
+        <section id="view-news" class="view-section p-6 md:p-12 lg:p-20">
+            <div class="max-w-7xl mx-auto pb-16">
+                <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <h2 class="font-heading text-4xl font-bold text-white">Sektörel <span class="text-brand-500">Gündem</span></h2>
+                    <span class="bg-brand-500/10 border border-brand-500/30 text-brand-500 text-xs px-3 py-1.5 rounded-full flex items-center gap-2 w-max shadow-[0_0_10px_rgba(245,158,11,0.2)]"><span class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span> Canlı Veri Akışı</span>
+                </div>
+                
+                <div class="grid lg:grid-cols-3 gap-6 mb-8">
+                    <!-- Flaş Haber -->
+                    <div class="lg:col-span-2 relative rounded-2xl overflow-hidden min-h-[350px] flex items-end border border-dark-800 group cursor-pointer">
+                        <img src="http://googleusercontent.com/image_collection/image_retrieval/13340625096043356191" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+                        <div class="absolute inset-0 bg-gradient-to-t from-dark-950 via-dark-950/70 to-transparent"></div>
+                        <div class="relative z-10 p-8 w-full">
+                            <span class="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full mb-4 inline-block shadow-lg animate-pulse">FLAŞ HABER</span>
+                            <h3 class="text-2xl md:text-3xl font-heading font-bold text-white mb-2 group-hover:text-brand-400 transition-colors">Marmara Bölgesi Yeni Nesil Diri Fay Haritası 3D Olarak Erişime Açıldı</h3>
+                            <p class="text-slate-300 text-sm mt-3 line-clamp-2">AFAD ve üniversitelerin ortaklaşa yürüttüğü mikro-bölgeleme çalışması tamamlandı. Zemin ivme değerlerinde kritik güncellemeler var.</p>
+                        </div>
+                    </div>
+                    <!-- Canlı Deprem Bülteni -->
+                    <div class="bg-dark-900 border border-dark-800 rounded-2xl p-6 shadow-xl flex flex-col relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-red-500/5 rounded-full blur-2xl pointer-events-none"></div>
+                        <h3 class="text-xl font-heading font-bold text-white mb-4 border-b border-dark-800 pb-3 flex justify-between items-center relative z-10">
+                            <span><i class="fa-solid fa-house-crack text-red-500 mr-2"></i>Son Depremler</span>
+                            <span class="text-[9px] bg-red-500/20 text-red-500 border border-red-500/30 px-2 py-1 rounded font-mono animate-pulse">AFAD API</span>
+                        </h3>
+                        <div class="space-y-4 flex-grow relative z-10">
+                            <div class="flex items-center justify-between group cursor-pointer hover:bg-dark-800/50 p-2 rounded transition-colors -mx-2">
+                                <div><p class="text-sm font-bold text-white group-hover:text-red-400 transition-colors">Kahramanmaraş, Pınarcık</p><p class="text-[10px] text-slate-500">Bugün, 14:22 • Derinlik: 7.2 km</p></div>
+                                <div class="bg-red-500 text-white font-bold px-2 py-1 rounded text-sm shadow-[0_0_10px_rgba(239,68,68,0.3)]">4.1</div>
+                            </div>
+                            <div class="flex items-center justify-between group cursor-pointer hover:bg-dark-800/50 p-2 rounded transition-colors -mx-2">
+                                <div><p class="text-sm font-bold text-white group-hover:text-brand-500 transition-colors">İzmir, Buca Açıkları</p><p class="text-[10px] text-slate-500">Bugün, 11:05 • Derinlik: 12.4 km</p></div>
+                                <div class="bg-brand-500 text-dark-950 font-bold px-2 py-1 rounded text-sm">3.6</div>
+                            </div>
+                            <div class="flex items-center justify-between group cursor-pointer hover:bg-dark-800/50 p-2 rounded transition-colors -mx-2">
+                                <div><p class="text-sm font-bold text-white group-hover:text-yellow-500 transition-colors">Malatya, Göksun</p><p class="text-[10px] text-slate-500">Dün, 22:45 • Derinlik: 5.0 km</p></div>
+                                <div class="bg-yellow-500 text-dark-950 font-bold px-2 py-1 rounded text-sm">3.1</div>
+                            </div>
+                            <div class="flex items-center justify-between group cursor-pointer hover:bg-dark-800/50 p-2 rounded transition-colors -mx-2">
+                                <div><p class="text-sm font-bold text-white group-hover:text-slate-300 transition-colors">Muğla, Hemşin</p><p class="text-[10px] text-slate-500">Dün, 18:12 • Derinlik: 8.1 km</p></div>
+                                <div class="bg-dark-700 border border-dark-600 text-white font-bold px-2 py-1 rounded text-sm">2.4</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid lg:grid-cols-2 gap-6">
+                    <!-- İhale Gündemi -->
+                    <div class="bg-dark-900 border border-dark-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-brand-500/5 rounded-full blur-2xl pointer-events-none"></div>
+                        <h3 class="text-xl font-heading font-bold text-white mb-4 border-b border-dark-800 pb-3 flex justify-between items-center relative z-10">
+                            <span><i class="fa-solid fa-file-signature text-brand-500 mr-2"></i>İhale Gündemi</span>
+                            <span class="text-[9px] bg-brand-500/20 text-brand-500 border border-brand-500/30 px-2 py-1 rounded font-mono">EKAP API</span>
+                        </h3>
+                        <div class="space-y-4 relative z-10">
+                            <div class="border-l-2 border-brand-500 pl-3 group cursor-pointer">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <p class="text-[10px] text-slate-400 font-mono">2026/145892</p>
+                                    <span class="bg-dark-800 text-emerald-400 border border-emerald-400/20 px-1.5 py-0.5 rounded text-[9px] font-bold">Açık İhale</span>
+                                </div>
+                                <h4 class="text-sm font-bold text-white group-hover:text-brand-400 transition-colors leading-snug">İstanbul Karayolları Zemin Etüt ve Sondaj İşi</h4>
+                            </div>
+                            <div class="border-l-2 border-brand-500 pl-3 group cursor-pointer mt-4">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <p class="text-[10px] text-slate-400 font-mono">2026/092144</p>
+                                    <span class="bg-dark-800 text-blue-400 border border-blue-400/20 px-1.5 py-0.5 rounded text-[9px] font-bold">Ön Yeterlilik</span>
+                                </div>
+                                <h4 class="text-sm font-bold text-white group-hover:text-brand-400 transition-colors leading-snug">İzmir Yeni Metro Hattı Geoteknik Projelendirmesi</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Kararlar & Mevzuat -->
+                    <div class="bg-dark-900 border border-dark-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-2xl pointer-events-none"></div>
+                        <h3 class="text-xl font-heading font-bold text-white mb-4 border-b border-dark-800 pb-3 flex justify-between items-center relative z-10">
+                            <span><i class="fa-solid fa-scale-balanced text-blue-500 mr-2"></i>Kararlar & Mevzuat</span>
+                            <span class="text-[9px] bg-blue-500/20 text-blue-500 border border-blue-500/30 px-2 py-1 rounded font-mono">RESMİ GAZETE</span>
+                        </h3>
+                        <div class="space-y-4 relative z-10">
+                            <div class="bg-dark-800/50 rounded-lg p-4 border border-dark-700 group cursor-pointer hover:border-blue-500/50 transition-colors">
+                                <div class="flex justify-between items-start mb-2"><span class="bg-blue-500/10 text-blue-400 text-[9px] px-2 py-0.5 rounded font-bold border border-blue-500/20">ÇEVRE VE ŞEHİRCİLİK BKN.</span></div>
+                                <h4 class="text-sm font-bold text-white group-hover:text-blue-400 transition-colors leading-snug">Zemin İyileştirme Uygulamalarında Yeni Denetim Standartları Yürürlüğe Girdi</h4>
+                            </div>
+                            <div class="bg-dark-800/50 rounded-lg p-4 border border-dark-700 group cursor-pointer hover:border-blue-500/50 transition-colors">
+                                <div class="flex justify-between items-start mb-2"><span class="bg-orange-500/10 text-orange-400 text-[9px] px-2 py-0.5 rounded font-bold border border-orange-500/20">YARGITAY KARARI</span></div>
+                                <h4 class="text-sm font-bold text-white group-hover:text-blue-400 transition-colors leading-snug">Geoteknik Tasarım Hatalarında Müteahhit ve Müşavirin Müşterek Sorumluluğu</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 9. İLETİŞİM VIEW -->
+        <section id="view-contact" class="view-section p-6 md:p-12 lg:p-20 relative">
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center mb-12">
+                    <h2 class="font-heading text-4xl font-bold mb-4 text-white">Bize <span class="text-brand-500">Ulaşın</span></h2>
+                </div>
+                <div class="bg-dark-900 border border-dark-800 rounded-2xl flex flex-col md:flex-row overflow-hidden shadow-2xl relative z-10">
+                    <div class="bg-dark-800 p-8 md:w-1/3 border-b md:border-b-0 md:border-r border-dark-700">
+                        <h3 class="font-bold text-white text-xl mb-6">M. Mühendislik A.Ş.</h3>
+                        <p class="text-sm text-slate-400 mb-5 flex items-center"><i class="fa-solid fa-envelope mr-3 text-brand-500"></i>destek@pamplanss.com</p>
+                        <p class="text-sm text-slate-400 mb-5 flex items-center"><i class="fa-solid fa-globe mr-3 text-brand-500"></i>www.pamplanss.com</p>
+                        <p class="text-sm text-slate-400 mb-5 flex items-center"><i class="fa-solid fa-phone mr-3 text-brand-500"></i>+90 850 123 45 67</p>
+                    </div>
+                    <div class="p-8 md:w-2/3">
+                        <form onsubmit="event.preventDefault(); showCustomMessage('Başarılı', 'Geri bildiriminiz iletildi. Teşekkürler.'); setTimeout(() => switchView('home'), 1500);" class="space-y-5">
+                            <input type="text" required placeholder="Adınız Soyadınız" class="w-full bg-dark-950 border border-slate-700 rounded-lg p-3.5 text-white text-sm focus:outline-none focus:border-brand-500">
+                            <textarea required rows="4" placeholder="Mesajınız..." class="w-full bg-dark-950 border border-slate-700 rounded-lg p-3.5 text-white text-sm resize-none focus:outline-none focus:border-brand-500"></textarea>
+                            <div class="border-2 border-slate-700 border-dashed rounded-lg p-5 text-center relative hover:border-brand-500 transition-colors bg-dark-950/50">
+                                <input type="file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="document.getElementById('file-name-display').classList.remove('hidden'); document.getElementById('file-name-text').textContent = this.files[0].name;">
+                                <i class="fa-solid fa-cloud-arrow-up text-2xl text-slate-400 mb-2"></i>
+                                <p class="text-sm text-brand-500 font-medium">Dosya Ekle <span class="text-slate-500 font-normal">(Opsiyonel)</span></p>
+                            </div>
+                            <div id="file-name-display" class="hidden text-xs text-emerald-500 mt-2 font-medium"><i class="fa-solid fa-check-circle mr-1"></i><span id="file-name-text"></span></div>
+                            <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-dark-950 font-bold py-3.5 rounded-lg mt-2 shadow-lg transition-all">Formu Gönder</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <!-- KURUMSAL FOOTER -->
+            <div class="mt-12 text-center pb-8 border-t border-dark-800/50 pt-8 max-w-4xl mx-auto">
+                <p class="text-xs text-slate-500 font-medium tracking-wide">
+                    &copy; 2026 M. Mühendislik A.Ş. Tüm Hakları Saklıdır.<br>
+                    <span class="text-[10px] text-slate-600 mt-2 block">M-Plan, bir <a href="https://www.pamplanss.com" target="_blank" class="text-brand-500/70 hover:text-brand-500 transition-colors">www.pamplanss.com</a> markasıdır.</span>
+                </p>
+            </div>
+        </section>
+
+        <!-- 10. PREMIUM PAKETLER VIEW -->
+        <section id="view-pricing" class="view-section p-6 md:p-12 lg:p-20">
+            <div class="max-w-6xl mx-auto pb-16">
+                <div class="text-center mb-16">
+                    <h2 class="font-heading text-4xl md:text-5xl font-bold mb-4 text-white">Sahada Sınırları <span class="text-brand-500">Kaldırın</span></h2>
+                </div>
+                <div class="grid md:grid-cols-3 gap-8 items-center">
+                    <div class="bg-dark-900 border border-dark-800 rounded-2xl p-8 shadow-lg">
+                        <h3 class="text-xl font-bold text-white mb-2">Başlangıç</h3><div class="mb-6"><span class="text-4xl font-heading font-bold text-white">₺0</span></div>
+                        <button class="w-full bg-dark-800 text-white font-bold py-3 rounded-lg border border-dark-700">Mevcut Planın</button>
+                    </div>
+                    <div class="bg-gradient-to-b from-dark-800 to-dark-900 border-2 border-brand-500 rounded-2xl p-8 transform md:-translate-y-4 shadow-[0_0_40px_rgba(245,158,11,0.15)]">
+                        <h3 class="text-xl font-bold text-white mb-2"><i class="fa-solid fa-crown text-brand-500 mr-2"></i>Saha Mühendisi</h3><div class="mb-6"><span class="text-4xl font-heading font-bold text-brand-500">₺499</span></div>
+                        <button class="w-full bg-brand-500 hover:bg-brand-600 text-dark-950 font-bold py-3 rounded-lg">Hemen PRO'ya Geç</button>
+                    </div>
+                    <div class="bg-dark-900 border border-dark-800 rounded-2xl p-8 shadow-lg">
+                        <h3 class="text-xl font-bold text-white mb-2">Kurumsal</h3><div class="mb-6"><span class="text-4xl font-heading font-bold text-white">Özel</span></div>
+                        <button class="w-full bg-dark-800 hover:bg-dark-700 text-white font-bold py-3 rounded-lg border border-dark-700">Bize Ulaşın</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MOBİL ALT MENÜ -->
+    <nav class="md:hidden fixed bottom-[40px] w-full bg-dark-900/95 backdrop-blur-md border-t border-dark-800 flex justify-around items-center h-[70px] z-50">
+        <button onclick="switchView('home')" class="mobile-nav-btn active flex flex-col items-center gap-1 w-16 text-brand-500" data-target="home"><i class="fa-solid fa-house text-xl"></i><span class="text-[10px] font-medium">Anasayfa</span></button>
+        <button onclick="switchView('map')" class="mobile-nav-btn flex flex-col items-center gap-1 w-16 text-slate-500 hover:text-slate-300" data-target="map"><i class="fa-solid fa-map-location-dot text-xl"></i><span class="text-[10px] font-medium">Harita</span></button>
+        <button onclick="switchView('tools')" class="mobile-nav-btn flex flex-col items-center gap-1 w-16 text-slate-500 hover:text-slate-300" data-target="tools"><i class="fa-solid fa-calculator text-xl"></i><span class="text-[10px] font-medium">Araçlar</span></button>
+    </nav>
+
+    <!-- HAVA DURUMU TICKER -->
+    <div class="ticker-wrap z-[60]">
+        <div class="ticker text-sm">
+            <span class="ticker-item"><i class="fa-solid fa-cloud-sun"></i> <strong>İstanbul:</strong> 22°C Parçalı Bulutlu</span>
+            <span class="ticker-item"><i class="fa-solid fa-sun text-yellow-400"></i> <strong>Ankara:</strong> 18°C Güneşli</span>
+            <span class="ticker-item"><i class="fa-solid fa-sun text-yellow-400"></i> <strong>İzmir:</strong> 26°C Açık</span>
+            <span class="ticker-item"><i class="fa-solid fa-cloud-showers-heavy text-blue-400"></i> <strong>Trabzon:</strong> 15°C Yağmurlu</span>
+            <span class="ticker-item"><i class="fa-solid fa-sun text-yellow-400"></i> <strong>Antalya:</strong> 29°C Açık</span>
+            <span class="ticker-item"><i class="fa-solid fa-cloud text-gray-400"></i> <strong>Bursa:</strong> 20°C Çok Bulutlu</span>
+            <span class="ticker-item"><i class="fa-solid fa-temperature-high text-red-400"></i> <strong>Adana:</strong> 32°C Sıcak</span>
+            <span class="ticker-item"><i class="fa-solid fa-wind text-gray-300"></i> <strong>Konya:</strong> 17°C Rüzgarlı</span>
+            <span class="ticker-item"><i class="fa-solid fa-cloud-rain text-blue-400"></i> <strong>Rize:</strong> 14°C Sağanak</span>
+            <span class="ticker-item"><i class="fa-solid fa-sun text-yellow-400"></i> <strong>Diyarbakır:</strong> 28°C Açık</span>
+            <span class="ticker-item"><i class="fa-solid fa-smog text-gray-400"></i> <strong>Erzurum:</strong> 11°C Sisli</span>
+            <span class="ticker-item"><i class="fa-solid fa-cloud-sun-rain text-blue-300"></i> <strong>Samsun:</strong> 16°C Hafif Yağmur</span>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="registerModal" class="fixed inset-0 bg-dark-950/80 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
+        <div class="bg-dark-900 border border-slate-700 rounded-2xl p-6 shadow-2xl w-full max-w-sm text-center">
+            <h3 class="text-xl font-bold text-white mb-4">Giriş Yap / Kayıt Ol</h3>
+            <button onclick="closeModal('registerModal')" class="bg-brand-500 text-dark-900 font-bold py-2 px-6 rounded-lg">Kapat</button>
+        </div>
+    </div>
+    
+    <div id="mobileMenuModal" class="fixed inset-0 bg-dark-950/90 backdrop-blur-md z-[100] hidden flex-col justify-end pb-[110px]">
+        <div class="bg-dark-900 w-full rounded-t-3xl p-6 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+            <div class="flex justify-between items-center mb-6 border-b border-dark-800 pb-4"><h3 class="text-xl font-bold text-white">Menü</h3><button onclick="closeModal('mobileMenuModal')" class="text-slate-400"><i class="fa-solid fa-xmark text-2xl"></i></button></div>
+            <div class="flex flex-col gap-3 mb-6">
+                <button onclick="switchView('boredpile'); closeModal('mobileMenuModal')" class="flex items-center gap-4 text-white p-3 bg-dark-800 rounded-xl border border-dark-700 hover:border-brand-500 text-left"><i class="fa-solid fa-arrow-down-long text-brand-500 w-6"></i> Fore Kazık</button>
+                <button onclick="switchView('sheetpile'); closeModal('mobileMenuModal')" class="flex items-center gap-4 text-white p-3 bg-dark-800 rounded-xl border border-dark-700 hover:border-brand-500 text-left"><i class="fa-solid fa-grip-lines-vertical text-brand-500 w-6"></i> Palplanş</button>
+                <button onclick="switchView('dashboard'); closeModal('mobileMenuModal')" class="flex items-center gap-4 text-white p-3 bg-dark-800 rounded-xl border border-dark-700 hover:border-brand-500 text-left"><i class="fa-solid fa-folder-open text-brand-500 w-6"></i> Arşiv</button>
+                <button onclick="switchView('ai-lab'); closeModal('mobileMenuModal')" class="flex items-center gap-4 text-white p-3 bg-dark-800 rounded-xl border border-dark-700 hover:border-brand-500 text-left"><i class="fa-solid fa-microchip text-brand-500 w-6"></i> M-Plan AI Lab</button>
+                <button onclick="switchView('news'); closeModal('mobileMenuModal')" class="flex items-center gap-4 text-white p-3 bg-dark-800 rounded-xl border border-dark-700 hover:border-brand-500 text-left"><i class="fa-solid fa-newspaper text-brand-500 w-6"></i> Haberler</button>
+                <button onclick="switchView('contact'); closeModal('mobileMenuModal')" class="flex items-center gap-4 text-white p-3 bg-dark-800 rounded-xl border border-dark-700 hover:border-brand-500 text-left"><i class="fa-solid fa-envelope text-brand-500 w-6"></i> İletişim</button>
+                <button onclick="switchView('pricing'); closeModal('mobileMenuModal')" class="flex items-center gap-4 text-white p-3 bg-dark-800 rounded-xl border border-dark-700 hover:border-brand-500 text-left"><i class="fa-solid fa-crown text-brand-500 w-6"></i> Premium</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analiz Modalları -->
+    <div id="loadingModal" class="fixed inset-0 bg-dark-950/95 backdrop-blur-md z-[100] hidden items-center justify-center p-4">
+         <div class="text-center">
+            <div class="relative w-24 h-24 mx-auto mb-6">
+                <div class="absolute inset-0 rounded-full border-4 border-dark-800"></div>
+                <div class="absolute inset-0 rounded-full border-4 border-brand-500 border-t-transparent animate-spin"></div>
+                <i class="fa-solid fa-globe absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-2xl text-brand-500"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-2">Veriler Çekiliyor...</h3>
+            <p id="loading-text" class="text-slate-400 text-sm mb-6">DEM Yükseklik Verisi Hesaplanıyor</p>
+         </div>
+    </div>
+
+    <div id="comprehensiveResultModal" class="fixed inset-0 bg-dark-950/95 backdrop-blur-lg z-[100] hidden items-center justify-center p-4 md:p-8 overflow-y-auto">
+        <div class="bg-dark-900 border border-dark-700 rounded-2xl w-full max-w-4xl shadow-2xl flex flex-col relative my-auto">
+            <div class="p-6 border-b border-dark-800 flex justify-between items-center bg-dark-950/50 rounded-t-2xl">
+                <div><h2 class="text-2xl font-heading font-bold text-white flex items-center gap-2"><i class="fa-solid fa-file-contract text-brand-500"></i> Jeoteknik Ön Değerlendirme</h2><p id="result-coord" class="text-sm text-slate-400 font-mono mt-1">39.0000° K, 32.0000° D</p></div>
+                <button onclick="closeModal('comprehensiveResultModal')" class="w-10 h-10 rounded-full bg-dark-800 hover:bg-red-500 text-slate-400 hover:text-white transition-colors flex items-center justify-center"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="md:col-span-1 bg-dark-950 rounded-xl border border-dark-800 p-4 flex flex-col items-center justify-center relative overflow-hidden">
+                    <p class="text-xs text-slate-500 font-bold uppercase tracking-wider mb-4">Tahmini Profil</p>
+                    <div id="soil-profile-visual" class="w-24 h-48 rounded shadow-lg border border-dark-700 flex flex-col overflow-hidden relative"></div>
+                </div>
+                <div class="md:col-span-2 grid grid-cols-2 gap-4">
+                    <div class="bg-dark-800/50 rounded-xl p-4 border border-dark-700/50"><p class="text-[10px] text-slate-500 uppercase font-bold mb-1"><i class="fa-solid fa-layer-group text-brand-500 mr-1"></i> Baskın Litoloji</p><p id="res-lithology" class="text-lg font-bold text-white leading-tight">Hesaplanıyor...</p></div>
+                    <div class="bg-dark-800/50 rounded-xl p-4 border border-dark-700/50"><p class="text-[10px] text-slate-500 uppercase font-bold mb-1"><i class="fa-solid fa-mountain text-brand-500 mr-1"></i> Topografya & Rakım</p><p class="text-lg font-bold text-white leading-tight"><span id="res-elevation">0</span>m / <span id="res-slope" class="text-brand-500">0%</span> Eğim</p></div>
+                    <div class="bg-dark-800/50 rounded-xl p-4 border border-dark-700/50"><p class="text-[10px] text-slate-500 uppercase font-bold mb-1"><i class="fa-solid fa-chart-line text-brand-500 mr-1"></i> TBDY-2018 Sınıfı</p><p id="res-class" class="text-2xl font-heading font-bold text-white">ZX</p></div>
+                    <div class="bg-dark-800/50 rounded-xl p-4 border border-dark-700/50 relative overflow-hidden"><div id="risk-glow" class="absolute -right-4 -bottom-4 w-16 h-16 rounded-full blur-xl"></div><p class="text-[10px] text-slate-500 uppercase font-bold mb-1 relative z-10"><i class="fa-solid fa-triangle-exclamation text-brand-500 mr-1"></i> Sıvılaşma Riski</p><p id="res-risk" class="text-lg font-bold text-white leading-tight relative z-10">Hesaplanıyor...</p></div>
+                </div>
+            </div>
+            <div class="p-6 border-t border-dark-800 bg-dark-950/30 rounded-b-2xl flex flex-col sm:flex-row gap-4">
+                <button class="flex-1 bg-brand-500 hover:bg-brand-600 text-dark-950 font-bold py-3 rounded-lg flex justify-center items-center gap-2 transition-colors"><i class="fa-solid fa-file-pdf"></i> PDF Rapor Çıkar</button>
+                <button onclick="closeModal('comprehensiveResultModal'); showCustomMessage('Başarılı', 'Rapor arşivinize eklendi.');" class="flex-1 bg-dark-800 hover:bg-dark-700 text-white font-bold py-3 rounded-lg flex justify-center items-center gap-2 border border-dark-700 transition-colors"><i class="fa-solid fa-folder-plus"></i> Arşive Kaydet</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT BÖLÜMÜ -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script>
+        // ----------------------------------------------------
+        // UI & VIEW YÖNETİMİ
+        // ----------------------------------------------------
+        function switchView(viewId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.getElementById('view-' + viewId).classList.add('active');
+            
+            document.querySelectorAll('.nav-btn').forEach(btn => { btn.classList.remove('text-brand-500'); btn.classList.add('text-slate-400'); });
+            const activeDesktopBtn = document.querySelector(`.nav-btn[data-target="${viewId}"]`);
+            if(activeDesktopBtn) { activeDesktopBtn.classList.remove('text-slate-400'); activeDesktopBtn.classList.add('text-brand-500'); }
+
+            document.querySelectorAll('.mobile-nav-btn').forEach(btn => { btn.classList.remove('text-brand-500'); btn.classList.add('text-slate-500'); });
+            const activeMobileBtn = document.querySelector(`.mobile-nav-btn[data-target="${viewId}"]`);
+            if(activeMobileBtn) { activeMobileBtn.classList.remove('text-slate-500'); activeMobileBtn.classList.add('text-brand-500'); }
+
+            if(viewId === 'map' && typeof map !== 'undefined') { setTimeout(() => { map.invalidateSize(); }, 100); }
+        }
+
+        function openModal(modalId) { document.getElementById(modalId).classList.remove('hidden'); document.getElementById(modalId).classList.add('flex'); }
+        function closeModal(modalId) { document.getElementById(modalId).classList.remove('flex'); document.getElementById(modalId).classList.add('hidden'); }
+
+        let isSunMode = false;
+        function toggleSunMode() {
+            isSunMode = !isSunMode;
+            if(isSunMode) { document.body.classList.add('sun-mode'); document.getElementById('sun-mode-btn').innerHTML = '<i class="fa-solid fa-moon"></i>'; } 
+            else { document.body.classList.remove('sun-mode'); document.getElementById('sun-mode-btn').innerHTML = '<i class="fa-solid fa-sun"></i>'; }
+        }
+
+        function switchLanguage(lang) {
+            if (lang === 'EN') { showCustomMessage('Language Info', 'Switching to English...'); } 
+            else { showCustomMessage('Dil Seçimi', 'Zaten Türkçe dilindesiniz.'); }
+        }
+
+        function showCustomMessage(title, text) {
+            const msgBox = document.createElement('div');
+            msgBox.className = 'fixed top-20 right-4 bg-dark-800 border-l-4 border-brand-500 text-white p-4 rounded shadow-xl z-[120] flex flex-col gap-2 max-w-sm transform transition-all duration-300 translate-x-full opacity-0';
+            msgBox.innerHTML = `<div class="flex justify-between items-center mb-1"><h4 class="font-bold font-heading text-brand-500">${title}</h4><button onclick="this.parentElement.parentElement.remove()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button></div><p class="text-sm text-slate-300">${text.replace('\n', '<br>')}</p>`;
+            document.body.appendChild(msgBox);
+            requestAnimationFrame(() => msgBox.classList.remove('translate-x-full', 'opacity-0'));
+            setTimeout(() => { msgBox.classList.add('translate-x-full', 'opacity-0'); setTimeout(() => msgBox.remove(), 300); }, 4000);
+        }
+
+        function downloadPDFMock(fileName) {
+            showCustomMessage('PDF İndiriliyor', `"${fileName}" güvenli sunucudan aktarılıyor...`);
+            setTimeout(() => { showCustomMessage('Tamamlandı', 'Rapor cihazınıza kaydedildi.'); }, 2000);
+        }
+
+        var map = L.map('real-map', { zoomControl: false, attributionControl: false }).setView([39.92077, 32.85411], 14);
+        L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', { maxZoom: 20, subdomains: ['mt0', 'mt1', 'mt2', 'mt3'] }).addTo(map);
+
+        const displayLatLng = document.getElementById('display-latlng');
+        function updateCoordinatesDisplay() {
+            const center = map.getCenter();
+            displayLatLng.innerText = `${center.lat.toFixed(4)}° K, ${center.lng.toFixed(4)}° D`;
+        }
+        map.on('move', updateCoordinatesDisplay); updateCoordinatesDisplay();
+
+        // GIS Katmanları
+        let faultLinesLayer = null;
+        let earthquakeMarkersGroup = null;
+
+        function toggleFaultLines() {
+            const isChecked = document.getElementById('chk-faultlines').checked;
+            if (isChecked) {
+                const faults = [
+                    [[40.7, 29.5], [40.8, 30.5], [40.7, 31.8], [40.9, 33.5], [40.8, 35.2], [40.9, 36.8], [40.4, 38.5], [39.8, 40.2], [39.7, 41.5]],
+                    [[37.0, 36.2], [37.4, 37.1], [38.1, 38.2], [38.1, 38.2], [38.4, 39.1], [38.9, 40.1], [39.3, 40.8]],
+                    [[38.4, 27.2], [38.1, 28.1], [37.8, 29.0]],
+                    [[37.9, 27.1], [37.5, 27.9], [37.1, 28.5]]
+                ];
+                faultLinesLayer = L.layerGroup();
+                faults.forEach(path => {
+                    L.polyline(path, { color: '#ef4444', weight: 4, opacity: 0.8, dashArray: '5, 10' }).addTo(faultLinesLayer);
+                });
+                faultLinesLayer.addTo(map);
+                showCustomMessage('CBS Güncellemesi', 'Türkiye Diri Fay Hatları sismik katmanı haritaya yüklendi.');
+            } else {
+                if (faultLinesLayer) { map.removeLayer(faultLinesLayer); faultLinesLayer = null; }
+            }
+        }
+
+        function toggleEarthquakeMarkers() {
+            const isChecked = document.getElementById('chk-earthquakes').checked;
+            if (isChecked) {
+                earthquakeMarkersGroup = L.layerGroup();
+                const mockQuakes = [
+                    { lat: 37.35, lng: 36.85, name: "Kahramanmaraş, Pınarcık", mag: 4.1, depth: "7.2 km" },
+                    { lat: 38.38, lng: 27.15, name: "İzmir, Buca Açıkları", mag: 3.6, depth: "12.4 km" },
+                    { lat: 38.12, lng: 38.44, name: "Malatya, Göksun", mag: 3.1, depth: "5.0 km" },
+                    { lat: 36.90, lng: 28.20, name: "Muğla, Hemşin", mag: 2.4, depth: "8.1 km" }
+                ];
+                mockQuakes.forEach(quake => {
+                    const color = quake.mag >= 4.0 ? '#ef4444' : quake.mag >= 3.0 ? '#f59e0b' : '#3b82f6';
+                    L.circle([quake.lat, quake.lng], { radius: quake.mag * 350, fillColor: color, fillOpacity: 0.25, color: color, weight: 2 })
+                    .bindPopup(`
+                        <div class="text-dark-950 p-1">
+                            <h4 class="font-bold border-b pb-1 text-sm"><i class="fa-solid fa-house-crack text-red-500"></i> ${quake.name}</h4>
+                            <p class="text-xs mt-1"><b>Şiddet:</b> <span class="text-red-600 font-bold font-mono">${quake.mag} ML</span></p>
+                            <p class="text-xs"><b>Derinlik:</b> ${quake.depth}</p>
+                        </div>
+                    `).addTo(earthquakeMarkersGroup);
+                });
+                earthquakeMarkersGroup.addTo(map);
+                showCustomMessage('Deprem Verisi', 'AFAD anlık sismik sarsıntı noktaları haritada işaretlendi.');
+            } else {
+                if (earthquakeMarkersGroup) { map.removeLayer(earthquakeMarkersGroup); earthquakeMarkersGroup = null; }
+            }
+        }
+
+        function pseudoRandom(lat, lng, seedOffset) { 
+            let seed = (lat * 1337) + (lng * 9999) + seedOffset; 
+            let x = Math.sin(seed) * 10000; 
+            return x - Math.floor(x); 
+        }
+
+        function startRealAnalysis() {
+            const center = map.getCenter(); openModal('loadingModal');
+            const loadText = document.getElementById('loading-text');
+            setTimeout(() => { loadText.innerText = "Litoloji ve DEM Verisi Çekiliyor..."; }, 800);
+            setTimeout(() => { loadText.innerText = "Sismik Risk Algoritmaları Çalışıyor..."; }, 1600);
+            setTimeout(() => { closeModal('loadingModal'); generateReportData(center.lat, center.lng); }, 2500);
+        }
+
+        function generateReportData(lat, lng) {
+            const elevationFactor = pseudoRandom(lat, lng, 1); 
+            const rakim = Math.floor(elevationFactor * 2000) + 10;
+            const egim = Math.floor(elevationFactor * elevationFactor * 40);
+            
+            let litoloji = "", zeminSinifi = "", risk = "", riskColor = "", profileHTML = "";
+
+            if(elevationFactor > 0.7) {
+                litoloji = "Kireçtaşı / Bazalt Formasyonları"; zeminSinifi = "ZA"; risk = "Çok Düşük"; riskColor = "bg-emerald-500/20 text-emerald-500";
+                profileHTML = `<div class="h-[15%] w-full bg-[#5c4033] flex items-center justify-center text-[10px] text-white/50">0.5m Toprak</div><div class="h-[85%] w-full bg-[#708090] flex items-center justify-center text-[10px] font-bold text-white/70">SAĞLAM KAYA</div>`;
+            } else if (elevationFactor > 0.3) {
+                litoloji = "Ayrışmış Marn / Sıkı Kum-Çakıl"; zeminSinifi = pseudoRandom(lat, lng, 3) > 0.5 ? "ZC" : "ZB"; risk = "Düşük - Orta"; riskColor = "bg-brand-500/20 text-brand-500";
+                profileHTML = `<div class="h-[30%] w-full bg-[#8b4513] flex items-center justify-center text-[10px] text-white/50 border-b border-black/30">2m Kil/Kum</div><div class="h-[40%] w-full bg-[#a0522d] flex items-center justify-center text-[10px] font-bold text-white/70 border-b border-black/30">Çakıllı Kil</div><div class="h-[30%] w-full bg-[#708090] flex items-center justify-center text-[10px] font-bold text-white/70">AYRIŞMIŞ KAYA</div>`;
+            } else {
+                litoloji = "Genç Alüvyon (Kum-Silt-Kil)"; zeminSinifi = pseudoRandom(lat, lng, 3) > 0.5 ? "ZD" : "ZE"; risk = "Yüksek (Sıvılaşma)"; riskColor = "bg-red-500/20 text-red-500";
+                profileHTML = `<div class="h-[20%] w-full bg-[#5c4033] flex items-center justify-center text-[10px] text-white/50 border-b border-black/30">1.5m Nebati</div><div class="h-[30%] w-full bg-[#d2b48c] flex items-center justify-center text-[10px] font-bold text-black/50 border-b border-black/30">Gevşek Kum</div><div class="h-[50%] w-full bg-[#cd853f] flex items-center justify-center text-[10px] font-bold text-black/70">Siltli Kil</div>`;
+            }
+
+            document.getElementById('result-coord').innerText = `${lat.toFixed(5)}° K, ${lng.toFixed(5)}° D`;
+            document.getElementById('res-elevation').innerText = rakim;
+            document.getElementById('res-slope').innerText = `%${egim}`;
+            document.getElementById('res-lithology').innerText = litoloji;
+            document.getElementById('res-class').innerText = zeminSinifi;
+            
+            const riskEl = document.getElementById('res-risk');
+            riskEl.className = `text-lg font-bold leading-tight relative z-10 px-2 py-0.5 rounded inline-block ${riskColor}`;
+            riskEl.innerText = risk;
+            
+            const glow = document.getElementById('risk-glow');
+            if(zeminSinifi === 'ZE') glow.className = "absolute -right-4 -bottom-4 w-16 h-16 rounded-full blur-xl bg-red-500/20";
+            else if(zeminSinifi === 'ZA') glow.className = "absolute -right-4 -bottom-4 w-16 h-16 rounded-full blur-xl bg-emerald-500/20";
+            else glow.className = "absolute -right-4 -bottom-4 w-16 h-16 rounded-full blur-xl bg-brand-500/20";
+
+            document.getElementById('soil-profile-visual').innerHTML = profileHTML;
+
+            const spectrumSoilSelect = document.getElementById('select-soil');
+            if (spectrumSoilSelect) {
+                spectrumSoilSelect.value = zeminSinifi;
+                updateSpectrum();
+            }
+
+            openModal('comprehensiveResultModal');
+        }
+
+        function updateMohr() {
+            const sig1 = parseFloat(document.getElementById('slider-sigma1').value);
+            let sig3 = parseFloat(document.getElementById('slider-sigma3').value);
+            if(sig3 >= sig1) { sig3 = sig1 - 10; document.getElementById('slider-sigma3').value = sig3; }
+            
+            document.getElementById('val-sigma1').innerText = sig1 + ' kPa'; 
+            document.getElementById('val-sigma3').innerText = sig3 + ' kPa';
+            
+            const center = (sig1 + sig3) / 2; const radius = (sig1 - sig3) / 2;
+            document.getElementById('val-center').innerText = center.toFixed(0) + ' kPa'; 
+            document.getElementById('val-radius').innerText = radius.toFixed(0) + ' kPa';
+
+            const mapX = (val) => 40 + (val / 600) * 340; 
+            const svgCx = mapX(center); const svgR = (radius / 600) * 340;
+            
+            const circle = document.getElementById('mohr-circle');
+            const centerPoint = document.getElementById('mohr-center-point');
+            
+            if(circle && centerPoint) {
+                circle.setAttribute('cx', svgCx); circle.setAttribute('r', svgR); centerPoint.setAttribute('cx', svgCx);
+                if(svgCx + svgR > 330) { circle.setAttribute('stroke', '#ef4444'); circle.setAttribute('fill', 'rgba(239, 68, 68, 0.1)'); } 
+                else { circle.setAttribute('stroke', '#f59e0b'); circle.setAttribute('fill', 'rgba(245, 158, 11, 0.1)'); }
+            }
+        }
+
+        function updateBulb() {
+            const B = parseFloat(document.getElementById('slider-bulb').value);
+            document.getElementById('val-bulb').innerText = B.toFixed(1) + ' m';
+            const box = document.getElementById('foundation-box'); const container = document.getElementById('bulb-container');
+            if(box && container) { box.style.width = (B * 20) + 'px'; container.style.transform = `scale(${0.5 + (B / 5)})`; }
+        }
+
+        function updateSpectrum() {
+            const soilClass = document.getElementById('select-soil').value;
+            const line = document.getElementById('spectrum-line'); const area = document.getElementById('spectrum-area');
+            const pTA = document.getElementById('point-TA'); const pTB = document.getElementById('point-TB');
+
+            let yPlateau, xTA, xTB;
+            switch(soilClass) {
+                case 'ZA': yPlateau = 120; xTA = 60; xTB = 120; break;
+                case 'ZB': yPlateau = 90; xTA = 65; xTB = 140; break;
+                case 'ZC': yPlateau = 60; xTA = 75; xTB = 180; break;
+                case 'ZD': yPlateau = 40; xTA = 85; xTB = 240; break; 
+                case 'ZE': yPlateau = 20; xTA = 100; xTB = 300; break;
+            }
+
+            const linePoints = `0,200 20,${yPlateau + 50} ${xTA},${yPlateau} ${xTB},${yPlateau} 400,${yPlateau + 100} 500,180`;
+            const areaPoints = `0,200 20,${yPlateau + 50} ${xTA},${yPlateau} ${xTB},${yPlateau} 400,${yPlateau + 100} 500,180 500,200`;
+
+            if(line && area && pTA && pTB) {
+                line.setAttribute('points', linePoints); area.setAttribute('points', areaPoints);
+                pTA.setAttribute('cx', xTA); pTA.setAttribute('cy', yPlateau); pTB.setAttribute('cx', xTB); pTB.setAttribute('cy', yPlateau);
+                
+                if(soilClass === 'ZE') line.setAttribute('stroke', '#ef4444');
+                else if(soilClass === 'ZA') line.setAttribute('stroke', '#10b981');
+                else line.setAttribute('stroke', '#f59e0b');
+            }
+        }
+
+        function calculatePileCapacity() {
+            const D_cm = parseFloat(document.getElementById('slider-pile-d').value);
+            const L_m = parseFloat(document.getElementById('slider-pile-l').value);
+            const soilSelect = document.getElementById('select-pile-soil');
+            const selectedSoil = soilSelect.options[soilSelect.selectedIndex];
+            const soilType = soilSelect.value;
+            
+            const frictionFactor = parseFloat(selectedSoil.getAttribute('data-friction'));
+            const endBearingFactor = parseFloat(selectedSoil.getAttribute('data-end'));
+            
+            const D_m = D_cm / 100; const radius = D_m / 2;
+            const surfaceArea = Math.PI * D_m * L_m;
+            const tipArea = Math.PI * Math.pow(radius, 2);
+            
+            const Qs = surfaceArea * (frictionFactor / 10);
+            const Qp = tipArea * endBearingFactor;
+            const Qu = Qs + Qp;
+            
+            document.getElementById('val-pile-d').innerText = D_cm + " cm";
+            document.getElementById('val-pile-l').innerText = L_m.toFixed(1) + " m";
+            
+            const dims = document.getElementById('display-pile-dims');
+            if(dims) dims.innerText = `Ø${D_cm} cm, ${L_m.toFixed(1)} m`;
+            
+            document.getElementById('res-pile-qs').innerText = Math.round(Qs) + " Ton";
+            document.getElementById('res-pile-qp').innerText = Math.round(Qp) + " Ton";
+            document.getElementById('res-pile-qu').innerText = Math.round(Qu) + " Ton";
+            
+            const graphic = document.getElementById('pile-graphic');
+            if(graphic) {
+                graphic.style.height = (20 + (L_m / 40) * 180) + "px";
+                graphic.style.width = (20 + ((D_cm - 45) / 105) * 60) + "px";
+                document.getElementById('scale-bottom').innerText = "-" + L_m.toFixed(1) + "m";
+            }
+            
+            const soilBg = document.getElementById('pile-soil-bg');
+            if(soilBg) {
+                if(soilType.includes('clay')) soilBg.style.backgroundColor = '#8b4513';
+                else if(soilType.includes('sand')) soilBg.style.backgroundColor = '#d2b48c';
+                else soilBg.style.backgroundColor = '#708090';
+            }
+            
+            calculatePileVolume();
+        }
+
+        function calculatePileVolume() {
+            const inputCount = document.getElementById('input-pile-count');
+            const count = inputCount ? parseInt(inputCount.value) || 0 : 0;
+            const D_m = parseFloat(document.getElementById('slider-pile-d').value) / 100;
+            const L_m = parseFloat(document.getElementById('slider-pile-l').value);
+            
+            const singleVolume = Math.PI * Math.pow(D_m / 2, 2) * L_m;
+            const totalVolume = singleVolume * count;
+            const rebarTons = (totalVolume * 110) / 1000;
+            
+            const resConcrete = document.getElementById('res-pile-concrete');
+            const resRebar = document.getElementById('res-pile-rebar');
+            
+            if(resConcrete) resConcrete.innerHTML = `${Math.round(totalVolume)} <span class="text-xs font-normal text-slate-400">m³</span>`;
+            if(resRebar) resRebar.innerHTML = `${rebarTons.toFixed(1)} <span class="text-xs font-normal text-blue-500/70">Ton</span>`;
+        }
+
+        function calculateSheetpile() {
+            const ps = document.getElementById('sp-profile');
+            const opt = ps.options[ps.selectedIndex];
+            
+            const w = parseFloat(opt.getAttribute('data-width'));
+            const kg = parseFloat(opt.getAttribute('data-weight'));
+            const wel = parseFloat(opt.getAttribute('data-wel'));
+            const type = opt.getAttribute('data-type');
+            
+            const wall = parseFloat(document.getElementById('sp-wall').value) || 0;
+            const length = parseFloat(document.getElementById('sp-length').value) || 0;
+            
+            if(wall > 0 && length > 0) {
+                const c = Math.ceil(wall / w);
+                document.getElementById('sp-res-count').innerText = c + " Adet";
+                document.getElementById('sp-res-tons').innerHTML = ((c * length * kg)/1000).toFixed(2) + ` <span class="text-sm font-normal text-brand-500/70">Ton</span>`;
+            }
+
+            const badge = document.getElementById('sp-type-badge');
+            const svgPath = document.getElementById('sp-svg-path');
+            const widthText = document.getElementById('sp-svg-width-text');
+            const statWel = document.getElementById('sp-stat-wel');
+            const statWeight = document.getElementById('sp-stat-weight');
+            const barWel = document.getElementById('sp-bar-wel');
+            const barWeight = document.getElementById('sp-bar-weight');
+            const comment = document.getElementById('sp-stat-comment');
+
+            if(widthText && svgPath) {
+                widthText.textContent = `Genişlik: ${w * 1000}mm`;
+                statWel.textContent = `${wel} cm³/m`;
+                statWeight.textContent = `${kg.toFixed(1)} kg/m`;
+                
+                if (barWel) barWel.style.width = Math.min((wel / 5000) * 100, 100) + "%";
+                if (barWeight) barWeight.style.width = Math.min((kg / 160) * 100, 100) + "%";
+
+                if(type === 'U') {
+                    badge.innerText = "U-TİPİ (KONSOL)";
+                    badge.className = "bg-blue-500/20 text-blue-500 px-3 py-1 rounded-full text-xs font-bold font-mono transition-colors";
+                    svgPath.setAttribute('stroke', '#3b82f6'); 
+                    svgPath.setAttribute('d', 'M 50,50 L 100,50 L 150,150 L 250,150 L 300,50 L 350,50');
+                    if(comment) comment.innerText = "Standart iksa projeleri için ideal denge. Kilit sürtünmesi yüksek, çakımı kolay U-Profil.";
+                } else if (type === 'Z') {
+                    badge.innerText = "Z-TİPİ (AĞIR YÜK)";
+                    badge.className = "bg-orange-500/20 text-orange-500 px-3 py-1 rounded-full text-xs font-bold font-mono transition-colors";
+                    svgPath.setAttribute('stroke', '#f97316'); 
+                    svgPath.setAttribute('d', 'M 50,150 L 150,150 L 250,50 L 350,50');
+                    if(comment) comment.innerText = "Ağırlık merkezinden geçen kilit sistemi sayesinde maksimum mukavemet sunar. Limanlar ve derin kazılar için tek çözümdür.";
+                } else {
+                    badge.innerText = "DÜZ KESİT (HÜCRESEL)";
+                    badge.className = "bg-emerald-500/20 text-emerald-500 px-3 py-1 rounded-full text-xs font-bold font-mono transition-colors";
+                    svgPath.setAttribute('stroke', '#10b981'); 
+                    svgPath.setAttribute('d', 'M 50,100 L 350,100');
+                    if(comment) comment.innerText = "Yüksek çekme kuvvetlerine dayanacak şekilde tasarlanmıştır. Dairesel (batardo) istinat yapıları ve dolgu adalar oluşturmak için kullanılır.";
+                }
+            }
+            recommendSheetpile();
+        }
+
+        function recommendSheetpile() {
+            const depthSlider = document.getElementById('slider-excavation');
+            if(!depthSlider) return;
+            const depth = parseFloat(depthSlider.value);
+            document.getElementById('val-excavation').innerText = depth.toFixed(1) + " m";
+            
+            const ps = document.getElementById('sp-profile');
+            const wel = parseFloat(ps.options[ps.selectedIndex].getAttribute('data-wel')) || 1800;
+
+            const icon = document.getElementById('rec-icon');
+            const title = document.getElementById('rec-title');
+            const desc = document.getElementById('rec-desc');
+            const depthRec = document.getElementById('rec-depth');
+            const deflRec = document.getElementById('rec-deflection');
+            const bgGlow = document.getElementById('rec-bg-glow');
+            
+            const excLine = document.getElementById('excavation-line');
+            const excLabel = document.getElementById('excavation-label');
+            const wallPath = document.getElementById('wall-deflection-path');
+
+            const yOffset = 20 + (depth / 15) * 160;
+            if(excLine && excLabel && wallPath) {
+                excLine.style.top = yOffset + "px";
+                excLabel.style.top = (yOffset - 15) + "px";
+                excLabel.innerText = `Kazı (-${depth.toFixed(1)}m)`;
+
+                let deflection = (Math.pow(depth, 3) * 50) / wel; 
+                let needsAnchor = false;
+                if(deflection > 50) {
+                    deflection = deflection * 0.3; 
+                    needsAnchor = true;
+                }
+
+                deflRec.innerText = deflection.toFixed(1) + " mm";
+                const curveAmount = Math.min(deflection, 80); 
+                wallPath.setAttribute('d', `M 0,0 Q ${curveAmount},${yOffset} 0,220 L 0,256`);
+
+                if (depth <= 4.0 && !needsAnchor) { 
+                    icon.className = "w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center text-xl shrink-0"; 
+                    icon.innerHTML = '<i class="fa-solid fa-check"></i>'; 
+                    title.innerText = "Konsol Tasarım (Güvenli)"; 
+                    desc.innerText = `Seçilen profil, bu derinlikte ankrajsız olarak güvenle ayakta kalacaktır.`;
+                    bgGlow.className = "absolute right-0 top-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl transition-colors";
+                    deflRec.className = "text-lg font-bold text-emerald-500";
+                    wallPath.setAttribute('stroke', '#10b981');
+                    depthRec.innerText = "~" + (depth * 1.5).toFixed(1) + " m";
+                } 
+                else if (depth <= 8.0 || needsAnchor) { 
+                    icon.className = "w-12 h-12 rounded-full bg-brand-500/20 text-brand-500 flex items-center justify-center text-xl shrink-0"; 
+                    icon.innerHTML = '<i class="fa-solid fa-anchor"></i>'; 
+                    title.innerText = "Tek Sıra Ankraj Gerekli"; 
+                    desc.innerText = `Deplasman limitlerini aşmamak için duvarın üst kotlarından tek sıra öngermeli ankraj bağlanmalıdır.`;
+                    bgGlow.className = "absolute right-0 top-0 w-32 h-32 bg-brand-500/10 rounded-full blur-3xl transition-colors";
+                    deflRec.className = "text-lg font-bold text-brand-500";
+                    wallPath.setAttribute('stroke', '#f59e0b');
+                    wallPath.setAttribute('d', `M 0,0 L 0,40 Q ${curveAmount},${yOffset} 0,220 L 0,256`);
+                    depthRec.innerText = "~" + (depth * 1.3).toFixed(1) + " m";
+                } 
+                else { 
+                    icon.className = "w-12 h-12 rounded-full bg-red-500/20 text-red-500 flex items-center justify-center text-xl shrink-0 animate-pulse"; 
+                    icon.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>'; 
+                    title.innerText = "Çoklu Ankraj / Ağır Z-Profil"; 
+                    desc.innerText = `Ekstrem derinlik! Seçtiğiniz profil kesiti bu deplasmanı karşılayamaz. Daha dayanıklı bir kesit kullanılmalıdır.`;
+                    bgGlow.className = "absolute right-0 top-0 w-32 h-32 bg-red-500/10 rounded-full blur-3xl transition-colors";
+                    deflRec.className = "text-lg font-bold text-red-500";
+                    wallPath.setAttribute('stroke', '#ef4444');
+                    depthRec.innerText = "~" + (depth + 5.0).toFixed(1) + " m";
+                }
+            }
+        }
+
+        function runAIScan() {
+            const btn = document.getElementById('btn-start-ai');
+            const img = document.getElementById('ai-core-image');
+            const radar = document.getElementById('ai-radar');
+            const laser = document.getElementById('ai-laser');
+            const container = document.getElementById('ai-boxes-container');
+            const termActive = document.getElementById('terminal-active-line');
+            const termOutput = document.getElementById('ai-terminal-output');
+            const confEl = document.getElementById('ai-conf');
+            const detEl = document.getElementById('ai-det');
+
+            if(btn.disabled) return;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> İşleniyor...';
+
+            container.innerHTML = '';
+            img.style.filter = "sepia(0.5) hue-rotate(90deg) saturate(3) brightness(0.8) contrast(1.2)";
+            img.style.opacity = "1";
+            radar.classList.remove('hidden');
+            laser.classList.remove('hidden');
+            
+            confEl.innerText = "Yükleniyor..."; 
+            confEl.className = "text-lg font-bold text-emerald-500 animate-pulse mt-1";
+            detEl.innerText = "0"; 
+            detEl.className = "text-2xl font-bold text-white";
+
+            const logMessages = [
+                "> INITIALIZING NEURAL NETWORK...",
+                "> LOADING ResNet-50 CORE MODEL [OK]",
+                "> EXTRACTING FEATURES FROM IMAGE [1024x1024]...",
+                "> DETECTING FRACTURES & JOINT SETS...",
+                "> CALCULATING RQD ESTIMATION...",
+                "> APPLYING LITHOLOGY CLASSIFIERS...",
+                "> PROCESS COMPLETE. RESULTS MAPPED."
+            ];
+
+            const boxesData = [
+                { top: '15%', left: '20%', w: '60%', h: '20%', label: 'KIRIKLI ZON [98.2%]', color: '#ef4444', time: 2000 },
+                { top: '45%', left: '25%', w: '45%', h: '15%', label: 'KUVARS DAMARI [85.5%]', color: '#f59e0b', time: 3500 },
+                { top: '75%', left: '30%', w: '50%', h: '20%', label: 'KİREÇTAŞI [92.0%]', color: '#10b981', time: 5000 }
+            ];
+
+            let step = 0;
+            termActive.innerText = "";
+            
+            function typeLog() {
+                if(step < logMessages.length) {
+                    const p = document.createElement('p');
+                    p.className = "text-emerald-400 text-xs mb-2 break-all";
+                    p.innerText = logMessages[step];
+                    termOutput.insertBefore(p, termActive);
+                    termOutput.scrollTop = termOutput.scrollHeight;
+                    step++;
+                    setTimeout(typeLog, 800 + Math.random() * 600);
+                } else {
+                    termActive.innerText = "> SYSTEM STANDBY.";
+                    btn.innerHTML = '<i class="fa-solid fa-power-off"></i> Yeni Tarama';
+                    btn.disabled = false;
+                    laser.classList.add('hidden');
+                    confEl.innerText = "%94.2"; 
+                    confEl.classList.remove('animate-pulse');
+                    confEl.classList.add('text-2xl', 'text-white');
+                }
+            }
+            typeLog();
+
+            boxesData.forEach((box, index) => {
+                setTimeout(() => {
+                    const boxEl = document.createElement('div');
+                    boxEl.className = "ai-box absolute flex items-start";
+                    boxEl.style.top = box.top; boxEl.style.left = box.left; 
+                    boxEl.style.width = box.w; boxEl.style.height = box.h;
+                    boxEl.style.border = `2px solid ${box.color}`;
+                    boxEl.style.backgroundColor = `${box.color}15`;
+                    boxEl.style.boxShadow = `inset 0 0 20px ${box.color}40, 0 0 20px ${box.color}40`;
+                    
+                    const label = document.createElement('span');
+                    label.className = "text-[10px] font-bold px-2 py-1 -mt-6 font-mono shadow-lg text-white border whitespace-nowrap";
+                    label.style.backgroundColor = `${box.color}CC`;
+                    label.style.borderColor = box.color;
+                    label.innerText = box.label;
+                    
+                    boxEl.appendChild(label);
+                    container.appendChild(boxEl);
+                    
+                    requestAnimationFrame(() => {
+                        boxEl.classList.add('active');
+                        detEl.innerText = index + 1;
+                    });
+                }, box.time);
+            });
+        }
+
+        window.onload = () => {
+            updateMohr(); updateBulb(); updateSpectrum();
+            calculateSheetpile(); calculatePileCapacity(); 
+        };
+    </script>
+</body>
+</html>
