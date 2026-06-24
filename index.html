@@ -145,9 +145,13 @@
                                 <div class="w-12 h-12 rounded-lg bg-dark-950 flex items-center justify-center text-brand-500 border border-dark-800 group-hover/btn:border-brand-500 transition-colors shadow-inner flex-shrink-0"><i class="fa-solid fa-arrow-down-long text-xl group-hover/btn:scale-110 transition-transform"></i></div>
                                 <div><p class="text-white font-bold text-sm">Fore Kazık</p><p class="text-[11px] text-slate-400 mt-0.5">Taşıma gücü ve metraj hesapları</p></div>
                             </button>
-                            <button onclick="switchView('sheetpile')" class="w-full text-left p-3 hover:bg-dark-800 rounded-xl transition-colors mb-4 flex items-center gap-4 group/btn">
+                            <button onclick="switchView('sheetpile')" class="w-full text-left p-3 hover:bg-dark-800 rounded-xl transition-colors mb-2 flex items-center gap-4 group/btn">
                                 <div class="w-12 h-12 rounded-lg bg-dark-950 flex items-center justify-center text-brand-500 border border-dark-800 group-hover/btn:border-brand-500 transition-colors shadow-inner flex-shrink-0"><i class="fa-solid fa-grip-lines-vertical text-xl group-hover/btn:scale-110 transition-transform"></i></div>
                                 <div><p class="text-white font-bold text-sm">Palplanş</p><p class="text-[11px] text-slate-400 mt-0.5">Tonaj ve yapay zeka kesit önerisi</p></div>
+                            </button>
+                            <button onclick="switchView('hdd')" class="w-full text-left p-3 hover:bg-dark-800 rounded-xl transition-colors mb-4 flex items-center gap-4 group/btn">
+                                <div class="w-12 h-12 rounded-lg bg-dark-950 flex items-center justify-center text-brand-500 border border-dark-800 group-hover/btn:border-brand-500 transition-colors shadow-inner flex-shrink-0"><i class="fa-solid fa-rotate text-xl group-hover/btn:scale-110 transition-transform"></i></div>
+                                <div><p class="text-white font-bold text-sm">Yatay Sondaj (HDD)</p><p class="text-[11px] text-slate-400 mt-0.5">Eğrilik, derinlik ve geri çekme kuvveti</p></div>
                             </button>
                             <button onclick="switchView('ai-lab')" class="w-full text-left p-3 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 rounded-xl transition-colors flex items-center gap-4 group/btn relative overflow-hidden">
                                 <div class="absolute right-0 top-0 w-16 h-16 bg-emerald-500/20 rounded-full blur-xl"></div>
@@ -829,6 +833,142 @@
             </div>
         </section>
 
+        <!-- 11. YATAY SONDAJ (HDD) VIEW -->
+        <section id="view-hdd" class="view-section p-6 md:p-12 lg:p-20 relative">
+            <div class="max-w-7xl mx-auto relative z-10 pb-16">
+                <div class="mb-10">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-500 text-xs font-bold tracking-wider mb-4"><i class="fa-solid fa-rotate"></i> TRENCHLESS TEKNOLOJİ</div>
+                    <h2 class="font-heading text-4xl font-bold mb-2 text-white">Yatay Sondaj <span class="text-brand-500">(HDD)</span> Mühendisliği</h2>
+                    <p class="text-slate-500 text-sm">Horizontal Directional Drilling — ASTM F1962 ve ISO 11295 Standartlarına Göre Tasarım</p>
+                </div>
+
+                <div class="grid lg:grid-cols-12 gap-8 mb-8">
+
+                    <!-- Sol: Parametreler -->
+                    <div class="lg:col-span-5 bg-dark-900 border border-dark-800 rounded-2xl shadow-2xl p-6 md:p-8 flex flex-col relative overflow-hidden">
+                        <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-brand-500/5 rounded-full blur-2xl pointer-events-none"></div>
+                        <h3 class="font-bold text-white text-xl mb-6 flex items-center border-b border-dark-800 pb-4"><i class="fa-solid fa-sliders text-brand-500 mr-3"></i> Proje Parametreleri</h3>
+                        <div class="space-y-5 relative z-10">
+
+                            <div>
+                                <div class="flex justify-between mb-1"><label class="text-xs font-bold text-slate-400 uppercase">Boru Dış Çapı (D)</label><span id="val-hdd-d" class="text-white text-sm font-bold bg-dark-800 px-2 rounded">400 mm</span></div>
+                                <input type="range" id="slider-hdd-d" min="100" max="1200" step="50" value="400" oninput="calculateHDD()">
+                                <div class="flex justify-between text-[10px] text-slate-600 mt-0.5"><span>100mm</span><span>1200mm</span></div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between mb-1"><label class="text-xs font-bold text-slate-400 uppercase">Sondaj Uzunluğu (L)</label><span id="val-hdd-l" class="text-white text-sm font-bold bg-dark-800 px-2 rounded">300 m</span></div>
+                                <input type="range" id="slider-hdd-l" min="50" max="2000" step="50" value="300" oninput="calculateHDD()">
+                                <div class="flex justify-between text-[10px] text-slate-600 mt-0.5"><span>50m</span><span>2000m</span></div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between mb-1"><label class="text-xs font-bold text-slate-400 uppercase">Giriş / Çıkış Açısı (α)</label><span id="val-hdd-alpha" class="text-white text-sm font-bold bg-dark-800 px-2 rounded">12°</span></div>
+                                <input type="range" id="slider-hdd-alpha" min="8" max="18" step="1" value="12" oninput="calculateHDD()">
+                                <div class="flex justify-between text-[10px] text-slate-600 mt-0.5"><span>8° (sığ)</span><span>18° (dik)</span></div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 mb-2 uppercase">Boru Malzemesi</label>
+                                <select id="select-hdd-material" onchange="calculateHDD()" class="w-full bg-dark-950 border border-slate-700 rounded-lg p-2.5 text-white text-sm focus:outline-none focus:border-brand-500">
+                                    <option value="HDPE">HDPE (SDR 11) — Polietilen</option>
+                                    <option value="STEEL">Çelik (API 5L)</option>
+                                    <option value="DUCTILE">Dökme Demir (DN Serisi)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 mb-2 uppercase">Zemin Tipi</label>
+                                <select id="select-hdd-soil" onchange="calculateHDD()" class="w-full bg-dark-950 border border-slate-700 rounded-lg p-2.5 text-white text-sm focus:outline-none focus:border-brand-500">
+                                    <optgroup label="Kohezyonsuz Zeminler">
+                                        <option value="loose_sand" data-mu="0.25">Gevşek Kum (N &lt; 10)</option>
+                                        <option value="dense_sand" data-mu="0.35" selected>Sıkı Kum-Çakıl (N &gt; 30)</option>
+                                    </optgroup>
+                                    <optgroup label="Kohezyonlu Zeminler">
+                                        <option value="soft_clay" data-mu="0.20">Yumuşak Kil (cu &lt; 25 kPa)</option>
+                                        <option value="stiff_clay" data-mu="0.30">Sert Kil (cu &gt; 100 kPa)</option>
+                                    </optgroup>
+                                    <optgroup label="Kayaçlar">
+                                        <option value="weathered_rock" data-mu="0.45">Ayrışmış Kaya (RQD &lt; 50%)</option>
+                                        <option value="hard_rock" data-mu="0.55">Sağlam Anakaya (RQD &gt; 75%)</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Sağ: SVG Profil + Sonuçlar -->
+                    <div class="lg:col-span-7 flex flex-col gap-6">
+
+                        <!-- SVG Profil -->
+                        <div class="bg-dark-900 border border-dark-800 rounded-2xl shadow-2xl p-6 relative overflow-hidden">
+                            <div class="flex justify-between items-center mb-4 border-b border-dark-800 pb-4">
+                                <h3 class="font-bold text-white text-lg flex items-center"><i class="fa-solid fa-drafting-compass text-brand-500 mr-3"></i> HDD Profil Kesiti</h3>
+                                <span id="hdd-bend-badge" class="bg-emerald-500/20 text-emerald-500 px-3 py-1 rounded-full text-xs font-bold font-mono">R_min: --</span>
+                            </div>
+                            <div class="bg-dark-950 rounded-xl border border-dark-800 overflow-hidden">
+                                <svg id="hdd-profile-svg" width="100%" height="200" viewBox="0 0 600 200">
+                                    <defs><pattern id="hdd-grid" width="30" height="30" patternUnits="userSpaceOnUse"><path d="M 30 0 L 0 0 0 30" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/></pattern></defs>
+                                    <rect width="600" height="200" fill="url(#hdd-grid)"/>
+                                    <g id="hdd-svg-group"></g>
+                                </svg>
+                            </div>
+                            <div class="flex flex-wrap gap-5 mt-3 text-[10px] font-bold">
+                                <span class="flex items-center gap-1.5 text-brand-500"><span class="w-5 h-[3px] bg-brand-500 inline-block rounded"></span> Boru Ekseni</span>
+                                <span class="flex items-center gap-1.5 text-blue-500"><span class="w-5 h-[2px] bg-blue-500 inline-block rounded" style="border-top:2px dashed #3b82f6;background:none"></span> Sondaj Aksı</span>
+                                <span class="flex items-center gap-1.5 text-slate-400">Maks. Derinlik: <span id="hdd-depth-val" class="text-white ml-1">-- m</span></span>
+                            </div>
+                        </div>
+
+                        <!-- Sonuç Kartları -->
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            <div class="bg-dark-900 border border-dark-800 rounded-xl p-4">
+                                <p class="text-[10px] text-slate-500 uppercase font-bold mb-1"><i class="fa-solid fa-arrows-spin text-brand-500 mr-1"></i> Min. Eğrilik R.</p>
+                                <p id="res-hdd-rmin" class="text-xl font-bold text-brand-500">-- m</p>
+                                <p id="res-hdd-rmin-label" class="text-[10px] text-slate-500 mt-0.5">HDPE SDR11</p>
+                            </div>
+                            <div class="bg-dark-900 border border-dark-800 rounded-xl p-4">
+                                <p class="text-[10px] text-slate-500 uppercase font-bold mb-1"><i class="fa-solid fa-arrow-down text-blue-500 mr-1"></i> Maks. Derinlik</p>
+                                <p id="res-hdd-depth" class="text-xl font-bold text-white">-- m</p>
+                                <p class="text-[10px] text-slate-500 mt-0.5">R × (1 − cos α)</p>
+                            </div>
+                            <div class="bg-dark-900 border border-dark-800 rounded-xl p-4">
+                                <p class="text-[10px] text-slate-500 uppercase font-bold mb-1"><i class="fa-solid fa-ruler-horizontal text-slate-400 mr-1"></i> Yatay Geçiş</p>
+                                <p id="res-hdd-horizontal" class="text-xl font-bold text-white">-- m</p>
+                                <p class="text-[10px] text-slate-500 mt-0.5">Düz bölüm uzunluğu</p>
+                            </div>
+                            <div class="bg-dark-900 border border-dark-800 rounded-xl p-4">
+                                <p class="text-[10px] text-slate-500 uppercase font-bold mb-1"><i class="fa-solid fa-droplet text-cyan-500 mr-1"></i> Sondaj Çamuru</p>
+                                <p id="res-hdd-mud" class="text-xl font-bold text-cyan-400">-- m³</p>
+                                <p class="text-[10px] text-slate-500 mt-0.5">Annüler hacim ×1.25</p>
+                            </div>
+                            <div class="bg-dark-900 border border-dark-800 rounded-xl p-4">
+                                <p class="text-[10px] text-slate-500 uppercase font-bold mb-1"><i class="fa-solid fa-gauge-high text-orange-500 mr-1"></i> Geri Çekme Kuvveti</p>
+                                <p id="res-hdd-pullback" class="text-xl font-bold text-orange-400">-- kN</p>
+                                <p class="text-[10px] text-slate-500 mt-0.5">F_pullback (ASTM F1962)</p>
+                            </div>
+                            <div class="bg-dark-900 border border-dark-800 rounded-xl p-4">
+                                <p class="text-[10px] text-slate-500 uppercase font-bold mb-1"><i class="fa-solid fa-circle-dot text-slate-400 mr-1"></i> Reaming Çapı</p>
+                                <p id="res-hdd-ddrill" class="text-xl font-bold text-white">-- mm</p>
+                                <p class="text-[10px] text-slate-500 mt-0.5">≈ 1.4 × D_boru</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Uyarı / Güvenlik Paneli -->
+                <div class="bg-dark-900 border border-dark-800 rounded-2xl p-6 flex items-start gap-4">
+                    <div id="hdd-warn-icon" class="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center text-xl shrink-0 mt-0.5"><i class="fa-solid fa-shield-check"></i></div>
+                    <div>
+                        <h4 id="hdd-warn-title" class="font-bold text-white text-lg mb-1">Tasarım Hesaplanıyor...</h4>
+                        <p id="hdd-warn-desc" class="text-sm text-slate-400">Parametreler girildikçe ASTM F1962 standardına göre değerlendirme yapılacaktır.</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
     </main>
 
     <!-- MOBİL ALT MENÜ -->
@@ -870,6 +1010,7 @@
             <div class="flex flex-col gap-3 mb-6">
                 <button onclick="switchView('boredpile'); closeModal('mobileMenuModal')" class="flex items-center gap-4 text-white p-3 bg-dark-800 rounded-xl border border-dark-700 hover:border-brand-500 text-left"><i class="fa-solid fa-arrow-down-long text-brand-500 w-6"></i> Fore Kazık</button>
                 <button onclick="switchView('sheetpile'); closeModal('mobileMenuModal')" class="flex items-center gap-4 text-white p-3 bg-dark-800 rounded-xl border border-dark-700 hover:border-brand-500 text-left"><i class="fa-solid fa-grip-lines-vertical text-brand-500 w-6"></i> Palplanş</button>
+                <button onclick="switchView('hdd'); closeModal('mobileMenuModal')" class="flex items-center gap-4 text-white p-3 bg-dark-800 rounded-xl border border-dark-700 hover:border-brand-500 text-left"><i class="fa-solid fa-rotate text-brand-500 w-6"></i> Yatay Sondaj (HDD)</button>
                 <button onclick="switchView('dashboard'); closeModal('mobileMenuModal')" class="flex items-center gap-4 text-white p-3 bg-dark-800 rounded-xl border border-dark-700 hover:border-brand-500 text-left"><i class="fa-solid fa-folder-open text-brand-500 w-6"></i> Arşiv</button>
                 <button onclick="switchView('ai-lab'); closeModal('mobileMenuModal')" class="flex items-center gap-4 text-white p-3 bg-dark-800 rounded-xl border border-dark-700 hover:border-brand-500 text-left"><i class="fa-solid fa-microchip text-brand-500 w-6"></i> M-Plan AI Lab</button>
                 <button onclick="switchView('news'); closeModal('mobileMenuModal')" class="flex items-center gap-4 text-white p-3 bg-dark-800 rounded-xl border border-dark-700 hover:border-brand-500 text-left"><i class="fa-solid fa-newspaper text-brand-500 w-6"></i> Haberler</button>
@@ -1337,6 +1478,238 @@
             }
         }
 
+        // ----------------------------------------------------
+        // YATAY SONDAJ (HDD) HESAPLAMALARI — ASTM F1962
+        // ----------------------------------------------------
+        function calculateHDD() {
+            const D_mm = parseFloat(document.getElementById('slider-hdd-d').value);
+            const L_total = parseFloat(document.getElementById('slider-hdd-l').value);
+            const alpha_deg = parseFloat(document.getElementById('slider-hdd-alpha').value);
+            const material = document.getElementById('select-hdd-material').value;
+            const soilSel = document.getElementById('select-hdd-soil');
+            const mu = parseFloat(soilSel.options[soilSel.selectedIndex].getAttribute('data-mu'));
+
+            document.getElementById('val-hdd-d').innerText = D_mm + ' mm';
+            document.getElementById('val-hdd-l').innerText = L_total + ' m';
+            document.getElementById('val-hdd-alpha').innerText = alpha_deg + '°';
+
+            const D_m = D_mm / 1000;
+            const alpha_rad = alpha_deg * Math.PI / 180;
+
+            // 1. Minimum eğrilik yarıçapı (R_min)
+            // HDPE SDR11: 1200×D | Çelik API5L: 1500×D | Dökme demir: 1800×D
+            const R_factor = material === 'HDPE' ? 1200 : material === 'STEEL' ? 1500 : 1800;
+            const R_min = R_factor * D_m;
+            const mat_label = material === 'HDPE' ? 'HDPE SDR11' : material === 'STEEL' ? 'API 5L Çelik' : 'Dökme Demir';
+
+            // 2. Profil geometrisi
+            const L_entry = R_min * alpha_rad;          // giriş eğrisi uzunluğu (m)
+            const L_exit  = R_min * alpha_rad;          // çıkış eğrisi uzunluğu (m)
+            const h_max   = R_min * (1 - Math.cos(alpha_rad)); // maks. derinlik (m)
+            const L_horiz = L_total - L_entry - L_exit; // yatay geçiş (m)
+
+            // 3. Reaming (sondaj) çapı
+            const D_drill_mm = Math.ceil(D_mm * 1.4 / 10) * 10;
+            const D_drill_m  = D_drill_mm / 1000;
+
+            // 4. Sondaj çamuru hacmi (annüler hacim × 1.25 güvenlik faktörü)
+            const V_annular = (Math.PI / 4) * (D_drill_m * D_drill_m - D_m * D_m) * L_total;
+            const V_mud = V_annular * 1.25;
+
+            // 5. Boru birim etkin ağırlığı (kN/m)
+            let w_unit;
+            if (material === 'HDPE') {
+                const t = D_m / 11;                                          // SDR11 et kalınlığı
+                const A_wall = Math.PI * D_m * t;
+                const w_air  = 950  * A_wall * 9.81 / 1000;                 // kN/m
+                const w_buoy = 1000 * (Math.PI / 4) * D_m * D_m * 9.81 / 1000;
+                w_unit = Math.abs(w_buoy - w_air);                          // HDPE su üstünde kalkar
+            } else if (material === 'STEEL') {
+                const t = D_m * 0.05;
+                const A_wall = Math.PI * D_m * t;
+                const w_air  = 7850 * A_wall * 9.81 / 1000;
+                const w_buoy = 1000 * (Math.PI / 4) * D_m * D_m * 9.81 / 1000;
+                w_unit = Math.max(w_air - w_buoy, 0.05 * D_m);
+            } else {
+                const t = D_m / 14;
+                const A_wall = Math.PI * D_m * t;
+                const w_air  = 7100 * A_wall * 9.81 / 1000;
+                const w_buoy = 1000 * (Math.PI / 4) * D_m * D_m * 9.81 / 1000;
+                w_unit = Math.max(w_air - w_buoy, 0.05 * D_m);
+            }
+
+            // 6. Geri çekme kuvveti — F_pullback (ASTM F1962 basitleştirilmiş)
+            // F = sürtünme + çamur direnci (fluidic drag)
+            const F_friction = mu * w_unit * L_total;
+            const F_drag     = 0.40 * D_m * L_total; // 0.4 kN/m/m-çap
+            const F_pullback = F_friction + F_drag;
+
+            // --- DOM güncellemesi ---
+            document.getElementById('res-hdd-rmin').innerText   = R_min.toFixed(0) + ' m';
+            document.getElementById('res-hdd-rmin-label').innerText = mat_label;
+            document.getElementById('res-hdd-depth').innerText  = h_max.toFixed(1) + ' m';
+            document.getElementById('res-hdd-ddrill').innerText = D_drill_mm + ' mm';
+            document.getElementById('res-hdd-mud').innerText    = V_mud.toFixed(1) + ' m³';
+            document.getElementById('hdd-depth-val').innerText  = h_max.toFixed(1) + ' m';
+
+            if (L_horiz >= 0) {
+                document.getElementById('res-hdd-horizontal').innerText = L_horiz.toFixed(0) + ' m';
+                document.getElementById('res-hdd-pullback').innerText   = Math.round(F_pullback) + ' kN';
+            } else {
+                document.getElementById('res-hdd-horizontal').innerText = '⚠ Yetersiz';
+                document.getElementById('res-hdd-pullback').innerText   = '—';
+            }
+
+            // Uyarı / değerlendirme paneli
+            const wIcon  = document.getElementById('hdd-warn-icon');
+            const wTitle = document.getElementById('hdd-warn-title');
+            const wDesc  = document.getElementById('hdd-warn-desc');
+            const badge  = document.getElementById('hdd-bend-badge');
+
+            if (L_horiz < 0) {
+                wIcon.className = 'w-12 h-12 rounded-full bg-red-500/20 text-red-500 flex items-center justify-center text-xl shrink-0 mt-0.5 animate-pulse';
+                wIcon.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+                wTitle.innerText = 'Kritik: Toplam Uzunluk Yetersiz';
+                wDesc.innerText  = `Giriş ve çıkış eğrisi toplamı ${(L_entry + L_exit).toFixed(0)} m iken toplam uzunluk sadece ${L_total} m. En az ${Math.ceil(L_entry + L_exit + 10)} m olmalıdır.`;
+                badge.className  = 'bg-red-500/20 text-red-500 px-3 py-1 rounded-full text-xs font-bold font-mono';
+                badge.innerText  = 'Tasarım Geçersiz';
+            } else if (F_pullback > 5000) {
+                wIcon.className = 'w-12 h-12 rounded-full bg-red-500/20 text-red-500 flex items-center justify-center text-xl shrink-0 mt-0.5';
+                wIcon.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+                wTitle.innerText = 'Yüksek Çekme Kuvveti — Özel Ekipman Gerekli';
+                wDesc.innerText  = `${Math.round(F_pullback)} kN geri çekme kuvveti standart HDD ekipman kapasitesini aşıyor. Ara çekme kuyusu veya 500+ ton sınıfı matkap uygulanmalıdır.`;
+                badge.className  = 'bg-red-500/20 text-red-500 px-3 py-1 rounded-full text-xs font-bold font-mono';
+                badge.innerText  = 'R_min: ' + R_min.toFixed(0) + ' m';
+            } else if (F_pullback > 2000) {
+                wIcon.className = 'w-12 h-12 rounded-full bg-brand-500/20 text-brand-500 flex items-center justify-center text-xl shrink-0 mt-0.5';
+                wIcon.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
+                wTitle.innerText = 'Orta-Büyük HDD Makinesi Önerilir';
+                wDesc.innerText  = `${Math.round(F_pullback)} kN geri çekme kuvveti için 200–300 ton sınıfı HDD makinesi gereklidir. Zemin ve güzergah koşulları saha öncesinde incelenmelidir.`;
+                badge.className  = 'bg-brand-500/20 text-brand-500 px-3 py-1 rounded-full text-xs font-bold font-mono';
+                badge.innerText  = 'R_min: ' + R_min.toFixed(0) + ' m';
+            } else {
+                wIcon.className = 'w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center text-xl shrink-0 mt-0.5';
+                wIcon.innerHTML = '<i class="fa-solid fa-shield-check"></i>';
+                wTitle.innerText = 'Tasarım Standartlara Uygun';
+                wDesc.innerText  = `ASTM F1962 gerekliliklerini karşılar. Min. eğrilik yarıçapı: ${R_min.toFixed(0)} m · Maks. derinlik: ${h_max.toFixed(1)} m · Tahmini çekme kuvveti: ${Math.round(F_pullback)} kN.`;
+                badge.className  = 'bg-emerald-500/20 text-emerald-500 px-3 py-1 rounded-full text-xs font-bold font-mono';
+                badge.innerText  = 'R_min: ' + R_min.toFixed(0) + ' m ✓';
+            }
+
+            drawHDDProfile(D_mm, L_total, alpha_deg, L_entry, L_exit, L_horiz, h_max, R_min, material);
+        }
+
+        function drawHDDProfile(D_mm, L_total, alpha_deg, L_entry, L_exit, L_horiz, h_max, R_min, material) {
+            const SVG_W = 600, SVG_H = 200;
+            const Y_SURF = 35;
+            const ML = 45, MR = 35;
+            const AW = SVG_W - ML - MR; // 520px kullanılabilir genişlik
+            const MAX_DEPTH_PX = SVG_H - Y_SURF - 22; // ~143px
+
+            const alpha_rad = alpha_deg * Math.PI / 180;
+
+            // X ölçeği: toplam uzunluğu genişliğe sığdır
+            const scale_x = AW / L_total;
+
+            // Y ölçeği: derinliği görünür kılmak için dikey abartma (max 40×)
+            const h_safe = Math.max(h_max, 0.01);
+            const scale_y = Math.min(MAX_DEPTH_PX / h_safe, scale_x * 40);
+
+            // Anahtar X noktaları
+            const x0 = ML;
+            const xHS = x0 + L_entry * scale_x;                    // yatay geçiş başlangıcı
+            const xHE = xHS + Math.max(L_horiz, 0) * scale_x;      // yatay geçiş sonu
+            const xEX = xHE + L_exit * scale_x;                     // çıkış noktası
+
+            const y0    = Y_SURF;
+            const yDeep = Math.min(Y_SURF + h_max * scale_y, SVG_H - 18);
+
+            // Görsel açı hesabı (dikey abartmalı koordinat sisteminde)
+            const vTan = Math.tan(alpha_rad) * (scale_y / scale_x);
+            const vLen = Math.sqrt(1 + vTan * vTan);
+            const vCos = 1 / vLen;
+            const vSin = vTan / vLen;
+
+            // Bezier kol uzunlukları
+            const armE = 0.42 * Math.sqrt((xHS - x0) * (xHS - x0) + (yDeep - y0) * (yDeep - y0));
+            const armX = 0.42 * Math.sqrt((xEX - xHE) * (xEX - xHE) + (y0 - yDeep) * (y0 - yDeep));
+
+            // Giriş eğrisi kontrol noktaları
+            const c1x = x0  + armE * vCos,  c1y = y0    + armE * vSin;
+            const c2x = xHS - armE,          c2y = yDeep;
+
+            // Çıkış eğrisi kontrol noktaları
+            const c3x = xHE + armX,          c3y = yDeep;
+            const c4x = xEX - armX * vCos,   c4y = y0    + armX * vSin;
+
+            // Boru rengi malzemeye göre
+            const pColor = material === 'HDPE' ? '#f59e0b' : material === 'STEEL' ? '#94a3b8' : '#6b7280';
+            const pThick = Math.max(3, Math.min(9, D_mm / 130));
+
+            // Sondaj yolu SVG path'i
+            const dPath = L_horiz >= 0
+                ? `M ${x0},${y0} C ${c1x},${c1y} ${c2x},${c2y} ${xHS},${yDeep} L ${xHE},${yDeep} C ${c3x},${c3y} ${c4x},${c4y} ${xEX},${y0}`
+                : `M ${x0},${y0} C ${c1x},${c1y} ${xEX},${yDeep} ${xEX},${y0}`;
+
+            let h = '';
+
+            // Zemin dolgusu
+            h += `<rect x="0" y="${Y_SURF}" width="${SVG_W}" height="${SVG_H}" fill="#1a2744" opacity="0.95"/>`;
+
+            // Litoloji katman çizgileri (dekoratif)
+            const strata = [0.22, 0.45, 0.68];
+            strata.forEach(f => {
+                const ys = Y_SURF + f * (SVG_H - Y_SURF);
+                h += `<line x1="0" y1="${ys}" x2="${SVG_W}" y2="${ys}" stroke="rgba(255,255,255,0.04)" stroke-width="1" stroke-dasharray="15,8"/>`;
+            });
+
+            // Yüzey şeridi
+            h += `<rect x="0" y="${Y_SURF - 7}" width="${SVG_W}" height="7" fill="#334155" opacity="0.8"/>`;
+            h += `<line x1="0" y1="${Y_SURF}" x2="${SVG_W}" y2="${Y_SURF}" stroke="#475569" stroke-width="2"/>`;
+            h += `<text x="6" y="${Y_SURF - 1}" fill="#64748b" font-size="8" font-family="monospace">YÜZEY</text>`;
+
+            // Glow (reamed zone)
+            h += `<path d="${dPath}" fill="none" stroke="${pColor}" stroke-width="${pThick * 5}" opacity="0.07"/>`;
+            // Sondaj aksı (kesik mavi)
+            h += `<path d="${dPath}" fill="none" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.55"/>`;
+            // Boru gövdesi
+            h += `<path d="${dPath}" fill="none" stroke="${pColor}" stroke-width="${pThick}" opacity="0.95" style="filter:drop-shadow(0 0 4px ${pColor}99)"/>`;
+
+            // Giriş noktası
+            h += `<circle cx="${x0}" cy="${y0}" r="4" fill="${pColor}"/>`;
+            h += `<text x="${x0}" y="${y0 - 9}" fill="${pColor}" font-size="8" font-family="monospace" text-anchor="middle">GİRİŞ</text>`;
+            h += `<text x="${x0}" y="${y0 - 1}" fill="${pColor}" font-size="7" font-family="monospace" text-anchor="middle">α=${alpha_deg}°</text>`;
+
+            // Çıkış noktası
+            h += `<circle cx="${xEX}" cy="${y0}" r="4" fill="${pColor}"/>`;
+            h += `<text x="${xEX}" y="${y0 - 9}" fill="${pColor}" font-size="8" font-family="monospace" text-anchor="middle">ÇIKIŞ</text>`;
+            h += `<text x="${xEX}" y="${y0 - 1}" fill="${pColor}" font-size="7" font-family="monospace" text-anchor="middle">α=${alpha_deg}°</text>`;
+
+            // Derinlik kota çizgisi (sol)
+            if (yDeep - Y_SURF > 14) {
+                const dx = ML - 20;
+                h += `<line x1="${dx}" y1="${Y_SURF}" x2="${dx}" y2="${yDeep}" stroke="#475569" stroke-width="1"/>`;
+                h += `<line x1="${dx-4}" y1="${Y_SURF}" x2="${dx+4}" y2="${Y_SURF}" stroke="#475569" stroke-width="1"/>`;
+                h += `<line x1="${dx-4}" y1="${yDeep}"  x2="${dx+4}" y2="${yDeep}"  stroke="#475569" stroke-width="1"/>`;
+                const midY = (Y_SURF + yDeep) / 2;
+                h += `<text x="${dx - 4}" y="${midY + 3}" fill="#94a3b8" font-size="8" font-family="monospace" text-anchor="end">${h_max.toFixed(1)}m</text>`;
+            }
+
+            // Yatay geçiş etiketi
+            if (L_horiz > 5 && xHE - xHS > 30) {
+                const midX = (xHS + xHE) / 2;
+                h += `<text x="${midX}" y="${yDeep + 15}" fill="#64748b" font-size="8" font-family="monospace" text-anchor="middle">${Math.max(L_horiz, 0).toFixed(0)} m yatay</text>`;
+                h += `<line x1="${xHS}" y1="${yDeep + 8}" x2="${xHE}" y2="${yDeep + 8}" stroke="#334155" stroke-width="1"/>`;
+                h += `<line x1="${xHS}" y1="${yDeep + 5}" x2="${xHS}" y2="${yDeep + 11}" stroke="#334155" stroke-width="1"/>`;
+                h += `<line x1="${xHE}" y1="${yDeep + 5}" x2="${xHE}" y2="${yDeep + 11}" stroke="#334155" stroke-width="1"/>`;
+            }
+
+            // Toplam uzunluk etiketi
+            h += `<text x="${(x0 + xEX) / 2}" y="${SVG_H - 4}" fill="#475569" font-size="8" font-family="monospace" text-anchor="middle">Toplam L = ${L_total} m</text>`;
+
+            document.getElementById('hdd-svg-group').innerHTML = h;
+        }
+
         function runAIScan() {
             const btn = document.getElementById('btn-start-ai');
             const img = document.getElementById('ai-core-image');
@@ -1432,7 +1805,8 @@
 
         window.onload = () => {
             updateMohr(); updateBulb(); updateSpectrum();
-            calculateSheetpile(); calculatePileCapacity(); 
+            calculateSheetpile(); calculatePileCapacity();
+            calculateHDD();
         };
     </script>
 </body>
