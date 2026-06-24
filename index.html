@@ -361,12 +361,15 @@
                     </button>
                     <button onclick="switchMapTab('pile')" id="mp-tab-pile" class="mp-tab flex-1 py-3 text-[10px] font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-300 transition-colors">
                         <i class="fa-solid fa-arrow-down-long block mb-0.5 text-sm"></i>F. KAZIK
+                        <span id="mp-dot-pile" class="w-1.5 h-1.5 rounded-full bg-slate-700 mx-auto mt-0.5 block transition-colors"></span>
                     </button>
                     <button onclick="switchMapTab('sheet')" id="mp-tab-sheet" class="mp-tab flex-1 py-3 text-[10px] font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-300 transition-colors">
                         <i class="fa-solid fa-grip-lines-vertical block mb-0.5 text-sm"></i>PALPLANŞ
+                        <span id="mp-dot-sheet" class="w-1.5 h-1.5 rounded-full bg-slate-700 mx-auto mt-0.5 block transition-colors"></span>
                     </button>
                     <button onclick="switchMapTab('hdd')" id="mp-tab-hdd" class="mp-tab flex-1 py-3 text-[10px] font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-300 transition-colors">
                         <i class="fa-solid fa-rotate block mb-0.5 text-sm"></i>HDD
+                        <span id="mp-dot-hdd" class="w-1.5 h-1.5 rounded-full bg-slate-700 mx-auto mt-0.5 block transition-colors"></span>
                     </button>
                 </div>
 
@@ -387,13 +390,49 @@
                             <div class="bg-dark-800 rounded-lg p-3"><p class="text-[9px] text-slate-500 uppercase font-bold">Eğim</p><p id="mp-slope" class="text-sm font-bold text-brand-500 mt-0.5">-</p></div>
                             <div class="bg-dark-800 rounded-lg p-3"><p class="text-[9px] text-slate-500 uppercase font-bold">Risk</p><p id="mp-risk" class="text-xs font-bold text-white mt-0.5 leading-tight">-</p></div>
                         </div>
+                        <!-- Yöntem Uygunluk Özeti -->
+                        <div class="bg-dark-950 border border-dark-700 rounded-xl p-3">
+                            <p class="text-[9px] text-brand-500 font-bold uppercase tracking-wider mb-2.5 flex items-center gap-1.5"><i class="fa-solid fa-clipboard-check"></i> Yöntem Uygunluk Değerlendirmesi</p>
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="text-xs text-slate-400 flex items-center gap-2 min-w-0"><i class="fa-solid fa-arrow-down-long text-slate-600 w-3"></i>Fore Kazık</span>
+                                    <span id="mp-compat-pile" class="text-[10px] font-bold px-2 py-0.5 rounded bg-dark-800 text-slate-500 shrink-0">Bekleniyor</span>
+                                </div>
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="text-xs text-slate-400 flex items-center gap-2 min-w-0"><i class="fa-solid fa-grip-lines-vertical text-slate-600 w-3"></i>Palplanş</span>
+                                    <span id="mp-compat-sheet" class="text-[10px] font-bold px-2 py-0.5 rounded bg-dark-800 text-slate-500 shrink-0">Bekleniyor</span>
+                                </div>
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="text-xs text-slate-400 flex items-center gap-2 min-w-0"><i class="fa-solid fa-rotate text-slate-600 w-3"></i>Yatay Sondaj</span>
+                                    <span id="mp-compat-hdd" class="text-[10px] font-bold px-2 py-0.5 rounded bg-dark-800 text-slate-500 shrink-0">Bekleniyor</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Fore Kazık Sekmesi -->
                     <div id="mp-content-pile" class="mp-content hidden p-4 space-y-4">
-                        <div class="bg-dark-800/60 rounded-lg p-3 border border-dark-700">
-                            <p class="text-[9px] text-slate-500 uppercase font-bold mb-1">Haritadan Tespit Edilen Zemin</p>
-                            <p id="mp-pile-soil-label" class="text-sm font-bold text-brand-500">-</p>
+                        <!-- Uygunluk Kartı -->
+                        <div id="mp-pile-guide" class="rounded-xl p-3 border border-dark-700 flex gap-3">
+                            <div id="mp-pile-guide-icon" class="w-10 h-10 rounded-full bg-dark-800 flex items-center justify-center text-lg shrink-0 mt-0.5"><i class="fa-solid fa-circle-question text-slate-600"></i></div>
+                            <div class="min-w-0">
+                                <p id="mp-pile-guide-title" class="text-sm font-bold text-slate-400 mb-0.5 leading-tight">Zemin Analizi Bekleniyor</p>
+                                <p id="mp-pile-guide-desc" class="text-xs text-slate-500 leading-relaxed">Haritadan konum seçildiğinde AI değerlendirmesi görüntülenecek.</p>
+                            </div>
+                        </div>
+                        <!-- AI Önerisi -->
+                        <div class="bg-dark-950/60 border border-dark-700 rounded-xl p-3">
+                            <p class="text-[9px] text-brand-500 font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Önerisi — Optimum Parametreler</p>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="bg-dark-800 rounded-lg p-2 text-center">
+                                    <p class="text-[9px] text-slate-500 mb-0.5">Önerilen Çap</p>
+                                    <p id="mp-pile-guide-d" class="text-sm font-bold text-brand-500">-- cm</p>
+                                </div>
+                                <div class="bg-dark-800 rounded-lg p-2 text-center">
+                                    <p class="text-[9px] text-slate-500 mb-0.5">Önerilen Boy</p>
+                                    <p id="mp-pile-guide-l" class="text-sm font-bold text-brand-500">-- m</p>
+                                </div>
+                            </div>
                         </div>
                         <div>
                             <div class="flex justify-between mb-1"><label class="text-[10px] font-bold text-slate-400 uppercase">Kazık Çapı (D)</label><span id="mp-val-pile-d" class="text-white text-xs font-bold bg-dark-950 px-2 py-0.5 rounded">80 cm</span></div>
@@ -416,9 +455,21 @@
 
                     <!-- Palplanş Sekmesi -->
                     <div id="mp-content-sheet" class="mp-content hidden p-4 space-y-4">
-                        <div class="bg-dark-800/60 rounded-lg p-3 border border-dark-700">
-                            <p class="text-[9px] text-slate-500 uppercase font-bold mb-1">Lokasyon Zemin Sınıfı</p>
-                            <p id="mp-sheet-soil-label" class="text-sm font-bold text-brand-500">-</p>
+                        <!-- Uygunluk Kartı -->
+                        <div id="mp-sheet-guide" class="rounded-xl p-3 border border-dark-700 flex gap-3">
+                            <div id="mp-sheet-guide-icon" class="w-10 h-10 rounded-full bg-dark-800 flex items-center justify-center text-lg shrink-0 mt-0.5"><i class="fa-solid fa-circle-question text-slate-600"></i></div>
+                            <div class="min-w-0">
+                                <p id="mp-sheet-guide-title" class="text-sm font-bold text-slate-400 mb-0.5 leading-tight">Zemin Analizi Bekleniyor</p>
+                                <p id="mp-sheet-guide-desc" class="text-xs text-slate-500 leading-relaxed">-</p>
+                            </div>
+                        </div>
+                        <!-- AI Önerisi -->
+                        <div class="bg-dark-950/60 border border-dark-700 rounded-xl p-3">
+                            <p class="text-[9px] text-brand-500 font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Önerisi — Güvenli Derinlik</p>
+                            <div class="bg-dark-800 rounded-lg p-2 text-center">
+                                <p class="text-[9px] text-slate-500 mb-0.5">Önerilen Maks. Kazı Derinliği</p>
+                                <p id="mp-sheet-guide-h" class="text-sm font-bold text-brand-500">-- m</p>
+                            </div>
                         </div>
                         <div>
                             <div class="flex justify-between mb-1"><label class="text-[10px] font-bold text-slate-400 uppercase">Kazı Derinliği (H)</label><span id="mp-val-exc" class="text-white text-xs font-bold bg-dark-950 px-2 py-0.5 rounded">5.0 m</span></div>
@@ -437,9 +488,13 @@
 
                     <!-- HDD Sekmesi -->
                     <div id="mp-content-hdd" class="mp-content hidden p-4 space-y-4">
-                        <div class="bg-dark-800/60 rounded-lg p-3 border border-dark-700">
-                            <p class="text-[9px] text-slate-500 uppercase font-bold mb-1">Haritadan Tespit Edilen Zemin</p>
-                            <p id="mp-hdd-soil-label" class="text-sm font-bold text-brand-500">-</p>
+                        <!-- Uygunluk Kartı -->
+                        <div id="mp-hdd-guide" class="rounded-xl p-3 border border-dark-700 flex gap-3">
+                            <div id="mp-hdd-guide-icon" class="w-10 h-10 rounded-full bg-dark-800 flex items-center justify-center text-lg shrink-0 mt-0.5"><i class="fa-solid fa-circle-question text-slate-600"></i></div>
+                            <div class="min-w-0">
+                                <p id="mp-hdd-guide-title" class="text-sm font-bold text-slate-400 mb-0.5 leading-tight">Zemin Analizi Bekleniyor</p>
+                                <p id="mp-hdd-guide-desc" class="text-xs text-slate-500 leading-relaxed">-</p>
+                            </div>
                         </div>
                         <div>
                             <label class="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase">Boru Malzemesi</label>
@@ -1437,9 +1492,6 @@
             document.getElementById('mp-slope').innerText    = '%' + egim;
             document.getElementById('mp-risk').innerText     = risk;
             document.getElementById('mp-soil-visual').innerHTML = profileHTML;
-            document.getElementById('mp-pile-soil-label').innerText  = mapSoilData.label;
-            document.getElementById('mp-sheet-soil-label').innerText = zeminSinifi + ' — ' + litoloji;
-            document.getElementById('mp-hdd-soil-label').innerText   = mapSoilData.label;
 
             // Badge rengi zemin sınıfına göre
             const mpBadge = document.getElementById('mp-class-badge');
@@ -1451,6 +1503,9 @@
             else
                 mpBadge.className = 'text-xs font-bold font-mono px-2 py-1 rounded bg-brand-500/20 text-brand-500 border border-brand-500/30';
 
+            // AI uygunluk rehberini uygula (optimal parametreler + kılavuz metinler)
+            applyMapSoilGuide(zeminSinifi);
+
             // Tüm sekme hesaplamalarını başlat
             switchMapTab('zemin');
             calcMapPile();
@@ -1461,6 +1516,89 @@
 
         // Harita analiz paneli için global zemin verisi
         let mapSoilData = { frictionFactor: 60, endBearingFactor: 2500, hddMu: 0.35, label: 'Sıkı Kum / Çakıl' };
+
+        // Zemin sınıfı → yöntem uygunluk rehberi
+        const soilGuide = {
+            ZA: {
+                pile:  { score: 'excellent', label: 'Mükemmel — Kısa Kazıkla Yüksek Kapasite',          desc: 'Sağlam anakaya çok yüksek uç direnci sağlar. Kazık 2-3m soketlendiğinde kısa boyda olağanüstü kapasite elde edilir. Çevre sürtünmesi ikincil roldedir.',          optD: 80,  optL: 10  },
+                sheet: { score: 'hard',      label: 'Tavsiye Edilmez — Çakım Mümkün Değil',              desc: 'Kaya zeminlere palplanş çakımı pratik değildir. Fore kazıklı perde, jet grout veya ankrajlı beton perde duvar tercih edilmelidir. Ön delme maliyeti çok yüksektir.', optH: 3.5 },
+                hdd:   { score: 'hard',      label: 'Çok Zor — Özel Ekipman & Yüksek Maliyet',           desc: 'Kaya sondajında Tricone/PDC kafalar zorunludur. Matkap ömrü kısadır, ilerleme çok yavaştır. Pilot delik sapma riski yüksek, mobilizasyon maliyeti çok fazladır. Alternatif güzergah düşünün.', optMat: 'm9' }
+            },
+            ZB: {
+                pile:  { score: 'good',      label: 'İyi — Orta Derinlik Yeterli',                       desc: 'Ayrışmış kaya hem sürtünme hem uç direnci sağlar. Kaya-zemin geçiş bölgesine 2-4m girilmesi optimum kapasiteyi verir. Delme süresi sağlam kayaya göre kısadır.',   optD: 80,  optL: 14  },
+                sheet: { score: 'hard',      label: 'Zor — Ön Delme Gerekebilir',                        desc: 'Ayrışmış kaya ve marn zeminlerde vibrasyon çakımı çoğunlukla yetersiz kalır. Ön delme (pre-drilling) uygulanarak güzergah açıldıktan sonra çakım denenebilir.',  optH: 4.5 },
+                hdd:   { score: 'moderate',  label: 'Orta Güçlük — Artırılmış Matkap Bütçesi',           desc: 'Ayrışmış kaya PDC/Hybrid kafalarla delinebilir. Matkap aşınması hızlıdır; güzergah başına birden fazla kafa değişimi hesaba katılmalıdır. Kil bantları katkı sorunlarına yol açabilir.', optMat: 'm8' }
+            },
+            ZC: {
+                pile:  { score: 'good',      label: 'Uygun — Standart Fore Kazık Tasarımı',              desc: 'Sıkı kum-çakıl fore kazık için ideal zemindir. Hem çevre sürtünmesi hem uç direnci aktiftir. SPT N>30 değerleri için L=15-20m aralığı tipik olarak yeterlidir.',      optD: 80,  optL: 16  },
+                sheet: { score: 'good',      label: 'Uygun — Standart PU/AU Profil',                     desc: 'Sıkı kum-çakıl için orta/ağır PU veya AU serisi profil uygundur. Vibrasyon çakımı önerilir. H≤5m konsol, H>5m tek sıra ankraj standart çözümdür.',               optH: 5.0 },
+                hdd:   { score: 'excellent', label: 'İdeal HDD Zemini — Standart Tasarım',               desc: 'Sıkı kum-çakıl HDD uygulamalarının referans zeminidir. Sondaj katkısı iyi tutunur, heave ve inadvertent return riski düşüktür. Makine kapasitesi öngörülebilir biçimde hesaplanır.', optMat: 'm1' }
+            },
+            ZD: {
+                pile:  { score: 'moderate',  label: 'Dikkatli — Uzun Kazık & Sıvılaşma Kontrolü',       desc: 'Gevşek kumda düşük SPT nedeniyle uzun kazık (L>20m) gerekir. Yeraltı suyu varsa sıvılaşma potansiyeli hesaplanmalıdır. Negatif cilt sürtünmesi ve grup etkisi ihmal edilmemelidir.', optD: 90,  optL: 22  },
+                sheet: { score: 'good',      label: 'Uygun — Sızıntı & Heave Kontrolü Şart',             desc: 'Gevşek kum kolayca çakılabilir. Ancak taban heave ve kum akması riski yüksektir; drenaj sistemi veya zemin iyileştirme planlanmalıdır. Kazı altı pasif direnci düşük.',        optH: 5.0 },
+                hdd:   { score: 'moderate',  label: 'Dikkatli — Çamur Kaçağı & Sıvılaşma Riski',        desc: 'Gevşek kum inadvertent return (istem dışı çamur çıkışı) ve yüzey yerleşmesi riskini artırır. Küçük adımlı reaming, düşük çamur basıncı ve sürekli izleme zorunludur.', optMat: 'm2' }
+            },
+            ZE: {
+                pile:  { score: 'moderate',  label: 'Uzun Kazık Zorunlu — Konsolidasyon Analizi Şart',  desc: 'Yumuşak kil çok düşük sürtünme ve uç direnci nedeniyle derin kazık (L>25m) gerektirir. Konsolidasyon oturmaları, negatif cilt sürtünmesi ve grup etkisi mutlaka modellenmelidir.',  optD: 100, optL: 28  },
+                sheet: { score: 'excellent', label: 'En Kolay Çakım — Vibrasyon Çakımı Hızlı İlerler', desc: 'Yumuşak kil palplanş çakımı için en elverişli zemindir. Zemin mukavemeti düşük olduğundan pasif direnç için derin çakım gerekir. Strüt veya ankraj ile heave kontrolü şarttır.', optH: 4.0 },
+                hdd:   { score: 'hard',      label: 'Yüksek Risk — Hidrolik Kırılma & Zemin Kabarması', desc: 'Yumuşak kil HDD için en riskli sınıftır. Çok düşük zemin dayanımı boru çevresinde kabarma (heave), inadvertent return ve stabilizasyon kaybı riskini kritik seviyeye taşır. Mikrotünel veya açık kazı alternatiflerini değerlendirin.', optMat: 'm1' }
+            }
+        };
+
+        // Zemin sınıfına göre AI rehberini panele uygula
+        function applyMapSoilGuide(zc) {
+            const g = soilGuide[zc] || soilGuide['ZC'];
+            const sm = {
+                excellent: { bg: 'bg-emerald-500/10 border-emerald-500/30', ico: 'bg-emerald-500/20 text-emerald-500', fa: 'fa-star',                color: 'text-emerald-500', badge: 'bg-emerald-500/20 text-emerald-500', dot: 'bg-emerald-500', label: 'Mükemmel' },
+                good:      { bg: 'bg-brand-500/10 border-brand-500/30',     ico: 'bg-brand-500/20 text-brand-500',     fa: 'fa-thumbs-up',           color: 'text-brand-500',   badge: 'bg-brand-500/20 text-brand-500',   dot: 'bg-brand-500',   label: 'Uygun'    },
+                moderate:  { bg: 'bg-amber-500/10 border-amber-500/30',     ico: 'bg-amber-500/20 text-amber-500',     fa: 'fa-triangle-exclamation', color: 'text-amber-400',   badge: 'bg-amber-500/20 text-amber-400',   dot: 'bg-amber-500',   label: 'Dikkatli' },
+                hard:      { bg: 'bg-red-500/10 border-red-500/30',         ico: 'bg-red-500/20 text-red-500',         fa: 'fa-ban',                 color: 'text-red-500',     badge: 'bg-red-500/20 text-red-500',       dot: 'bg-red-500',     label: 'Tavsiye Edilmez' }
+            };
+            function applyCard(prefix, data) {
+                const s = sm[data.score];
+                document.getElementById(prefix + '-guide').className          = 'rounded-xl p-3 border flex gap-3 ' + s.bg;
+                document.getElementById(prefix + '-guide-icon').className     = 'w-10 h-10 rounded-full flex items-center justify-center text-lg shrink-0 mt-0.5 ' + s.ico;
+                document.getElementById(prefix + '-guide-icon').innerHTML     = '<i class="fa-solid ' + s.fa + '"></i>';
+                document.getElementById(prefix + '-guide-title').className    = 'text-sm font-bold mb-0.5 leading-tight ' + s.color;
+                document.getElementById(prefix + '-guide-title').innerText    = data.label;
+                document.getElementById(prefix + '-guide-desc').innerText     = data.desc;
+            }
+            applyCard('mp-pile',  g.pile);
+            applyCard('mp-sheet', g.sheet);
+            applyCard('mp-hdd',   g.hdd);
+
+            // AI önerileri
+            const ps = sm[g.pile.score], ss = sm[g.sheet.score], hs = sm[g.hdd.score];
+            document.getElementById('mp-pile-guide-d').className  = 'text-sm font-bold ' + ps.color;
+            document.getElementById('mp-pile-guide-d').innerText  = g.pile.optD + ' cm';
+            document.getElementById('mp-pile-guide-l').className  = 'text-sm font-bold ' + ps.color;
+            document.getElementById('mp-pile-guide-l').innerText  = g.pile.optL + ' m';
+            document.getElementById('mp-sheet-guide-h').className = 'text-sm font-bold ' + ss.color;
+            document.getElementById('mp-sheet-guide-h').innerText = g.sheet.optH + ' m';
+
+            // Slider'ları optimum değerlere ayarla
+            document.getElementById('mp-slider-pile-d').value = g.pile.optD;
+            document.getElementById('mp-slider-pile-l').value = g.pile.optL;
+            document.getElementById('mp-slider-exc').value    = g.sheet.optH;
+
+            // HDD için önerilen malzemeyi seç
+            const mpMs = document.getElementById('mp-select-hdd-mat');
+            if(mpMs) { for(let i=0; i<mpMs.options.length; i++) { if(mpMs.options[i].value === g.hdd.optMat) { mpMs.selectedIndex = i; break; } } }
+
+            // Zemin sekmesindeki uygunluk özeti
+            document.getElementById('mp-compat-pile').className  = 'text-[10px] font-bold px-2 py-0.5 rounded shrink-0 ' + ps.badge;
+            document.getElementById('mp-compat-pile').innerText  = ps.label;
+            document.getElementById('mp-compat-sheet').className = 'text-[10px] font-bold px-2 py-0.5 rounded shrink-0 ' + ss.badge;
+            document.getElementById('mp-compat-sheet').innerText = ss.label;
+            document.getElementById('mp-compat-hdd').className   = 'text-[10px] font-bold px-2 py-0.5 rounded shrink-0 ' + hs.badge;
+            document.getElementById('mp-compat-hdd').innerText   = hs.label;
+
+            // Tab butonlarına renkli nokta
+            document.getElementById('mp-dot-pile').className  = 'w-1.5 h-1.5 rounded-full mx-auto mt-0.5 block transition-colors ' + ps.dot;
+            document.getElementById('mp-dot-sheet').className = 'w-1.5 h-1.5 rounded-full mx-auto mt-0.5 block transition-colors ' + ss.dot;
+            document.getElementById('mp-dot-hdd').className   = 'w-1.5 h-1.5 rounded-full mx-auto mt-0.5 block transition-colors ' + hs.dot;
+        }
 
         function openMapPanel() {
             document.getElementById('map-eng-panel').classList.remove('translate-x-full');
