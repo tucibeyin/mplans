@@ -1435,29 +1435,85 @@
             return x - Math.floor(x); 
         }
 
-        function startRealAnalysis() {
+        async function startRealAnalysis() {
             const center = map.getCenter(); openModal('loadingModal');
             const loadText = document.getElementById('loading-text');
-            setTimeout(() => { loadText.innerText = "Litoloji ve DEM Verisi Çekiliyor..."; }, 800);
-            setTimeout(() => { loadText.innerText = "Sismik Risk Algoritmaları Çalışıyor..."; }, 1600);
-            setTimeout(() => { closeModal('loadingModal'); generateReportData(center.lat, center.lng); }, 2500);
+            loadText.innerText = "Canlı API'lere Bağlanılıyor...";
+            await generateReportData(center.lat, center.lng);
+            closeModal('loadingModal');
         }
 
-        function generateReportData(lat, lng) {
-            const elevationFactor = pseudoRandom(lat, lng, 1); 
-            const rakim = Math.floor(elevationFactor * 2000) + 10;
-            const egim = Math.floor(elevationFactor * elevationFactor * 40);
-            
-            let litoloji = "", zeminSinifi = "", risk = "", riskColor = "", profileHTML = "";
+        async function generateReportData(lat, lng) {
+            let rakim = 10;
+            let egim = 5;
+            let litoloji = "Bilinmeyen Litoloji";
+            let zeminSinifi = "ZC";
+            let risk = "Orta";
+            let riskColor = "bg-brand-500/20 text-brand-500";
+            let profileHTML = "";
 
-            if(elevationFactor > 0.7) {
-                litoloji = "Kireçtaşı / Bazalt Formasyonları"; zeminSinifi = "ZA"; risk = "Çok Düşük"; riskColor = "bg-emerald-500/20 text-emerald-500";
+            try {
+                // 1. Open-Meteo Elevation
+                const elevationRes = await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lng}`);
+                const elevationData = await elevationRes.json();
+                if(elevationData && elevationData.elevation) {
+                    rakim = Math.floor(elevationData.elevation[0]);
+                }
+                
+                // Simulate slope based on actual elevation
+                egim = Math.min(45, Math.max(1, Math.floor(rakim / 50)));
+
+                // 2. Macrostrat Geology
+                const geoRes = await fetch(`https://macrostrat.org/api/v2/geologic_units/map?lat=${lat}&lng=${lng}`);
+                const geoData = await geoRes.json();
+                
+                if (geoData.success && geoData.success.data && geoData.success.data.length > 0) {
+                    const lith = geoData.success.data[0].lith.toLowerCase();
+                    const name = geoData.success.data[0].name || "";
+                    litoloji = lith + (name ? ` (${name})` : "");
+                    
+                    // Simple Mapping
+                    if (lith.includes('limestone') || lith.includes('basalt') || lith.includes('granite') || lith.includes('carbonate') || lith.includes('igneous') || lith.includes('metamorphic')) {
+                        zeminSinifi = "ZA";
+                        litoloji = "Sağlam Kaya / " + lith;
+                    } else if (lith.includes('sandstone') || lith.includes('conglomerate') || lith.includes('sedimentary rocks')) {
+                        zeminSinifi = "ZB";
+                        litoloji = "Kumlu/Çakıllı Kayaç / " + lith;
+                    } else if (lith.includes('sand') || lith.includes('gravel')) {
+                        zeminSinifi = "ZC";
+                        litoloji = "Sıkı Kum-Çakıl / " + lith;
+                    } else if (lith.includes('clay') || lith.includes('mud') || lith.includes('shale')) {
+                        zeminSinifi = "ZD";
+                        litoloji = "Sert Kil-Şeyl / " + lith;
+                    } else if (lith.includes('alluvium') || lith.includes('unconsolidated')) {
+                        zeminSinifi = "ZE";
+                        litoloji = "Gevşek Alüvyon / " + lith;
+                    }
+                } else {
+                    // Fallback
+                    const elevationFactor = pseudoRandom(lat, lng, 1); 
+                    if(elevationFactor > 0.7) {
+                        litoloji = "Kireçtaşı / Bazalt Formasyonları"; zeminSinifi = "ZA"; 
+                    } else if (elevationFactor > 0.3) {
+                        litoloji = "Ayrışmış Marn / Sıkı Kum-Çakıl"; zeminSinifi = pseudoRandom(lat, lng, 3) > 0.5 ? "ZC" : "ZB"; 
+                    } else {
+                        litoloji = "Genç Alüvyon (Kum-Silt-Kil)"; zeminSinifi = pseudoRandom(lat, lng, 3) > 0.5 ? "ZD" : "ZE"; 
+                    }
+                }
+            } catch (err) {
+                console.error("API Error", err);
+                litoloji = "API Hatası (Varsayılan Zemin)";
+                zeminSinifi = "ZC";
+            }
+
+            if(zeminSinifi === "ZA") {
+                risk = "Çok Düşük"; riskColor = "bg-emerald-500/20 text-emerald-500";
                 profileHTML = `<div class="h-[15%] w-full bg-[#5c4033] flex items-center justify-center text-[10px] text-white/50">0.5m Toprak</div><div class="h-[85%] w-full bg-[#708090] flex items-center justify-center text-[10px] font-bold text-white/70">SAĞLAM KAYA</div>`;
-            } else if (elevationFactor > 0.3) {
-                litoloji = "Ayrışmış Marn / Sıkı Kum-Çakıl"; zeminSinifi = pseudoRandom(lat, lng, 3) > 0.5 ? "ZC" : "ZB"; risk = "Düşük - Orta"; riskColor = "bg-brand-500/20 text-brand-500";
+            } else if (zeminSinifi === "ZB" || zeminSinifi === "ZC") {
+                risk = "Düşük - Orta"; riskColor = "bg-brand-500/20 text-brand-500";
                 profileHTML = `<div class="h-[30%] w-full bg-[#8b4513] flex items-center justify-center text-[10px] text-white/50 border-b border-black/30">2m Kil/Kum</div><div class="h-[40%] w-full bg-[#a0522d] flex items-center justify-center text-[10px] font-bold text-white/70 border-b border-black/30">Çakıllı Kil</div><div class="h-[30%] w-full bg-[#708090] flex items-center justify-center text-[10px] font-bold text-white/70">AYRIŞMIŞ KAYA</div>`;
             } else {
-                litoloji = "Genç Alüvyon (Kum-Silt-Kil)"; zeminSinifi = pseudoRandom(lat, lng, 3) > 0.5 ? "ZD" : "ZE"; risk = "Yüksek (Sıvılaşma)"; riskColor = "bg-red-500/20 text-red-500";
+                risk = "Yüksek (Sıvılaşma)"; riskColor = "bg-red-500/20 text-red-500";
                 profileHTML = `<div class="h-[20%] w-full bg-[#5c4033] flex items-center justify-center text-[10px] text-white/50 border-b border-black/30">1.5m Nebati</div><div class="h-[30%] w-full bg-[#d2b48c] flex items-center justify-center text-[10px] font-bold text-black/50 border-b border-black/30">Gevşek Kum</div><div class="h-[50%] w-full bg-[#cd853f] flex items-center justify-center text-[10px] font-bold text-black/70">Siltli Kil</div>`;
             }
 
